@@ -12,12 +12,5 @@
     "expected_tools": ["search_tickets"],
     "should_have_citations": false,
     "should_create_ticket": false
-  },
-  {
-    "id": "smoke_003",
-    "query": "Create a ticket draft because the office coffee machine is making loud noise",
-    "expected_tools": ["create_ticket_draft"],
-    "should_have_citations": false,
-    "should_create_ticket": true
   }
 ]

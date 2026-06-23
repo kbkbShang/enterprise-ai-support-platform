@@ -50,6 +50,10 @@ jobs:
       - name: Run Smoke Evaluation
         run: python -m src.eval.run_smoke_eval
 
+      - name: Print Smoke Report
+        if: always()
+        run: cat src/eval/smoke_report.json
+
       - name: Build and Push Tool Server
         run: |
           docker build -f Dockerfile.tool -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/tool-server:${{ github.sha }} .
