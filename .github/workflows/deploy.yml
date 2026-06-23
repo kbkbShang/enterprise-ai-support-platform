@@ -48,7 +48,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Smoke Evaluation
-        run: python eval/run_smoke_eval.py
+        run: python -m src.eval.run_smoke_eval
 
       - name: Build and Push Tool Server
         run: |
