@@ -1,16 +1,16 @@
 [
   {
     "id": "smoke_001",
-    "query": "VPN authentication failed",
-    "expected_tools": ["search_kb"],
-    "should_have_citations": true,
-    "should_create_ticket": false
-  },
-  {
-    "id": "smoke_002",
     "query": "Find a similar resolved ticket for VPN authentication failure",
     "expected_tools": ["search_tickets"],
     "should_have_citations": false,
     "should_create_ticket": false
+  },
+  {
+    "id": "smoke_002",
+    "query": "Create a ticket draft because the office coffee machine is making loud noise",
+    "expected_tools": ["create_ticket_draft"],
+    "should_have_citations": false,
+    "should_create_ticket": true
   }
 ]
