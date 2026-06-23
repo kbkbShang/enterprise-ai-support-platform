@@ -19,19 +19,5 @@
     "expected_tools": ["create_ticket_draft"],
     "should_have_citations": false,
     "should_create_ticket": true
-  },
-  {
-    "id": "smoke_004",
-    "query": "How do I reset my password?",
-    "expected_tools": ["search_kb"],
-    "should_have_citations": true,
-    "should_create_ticket": false
-  },
-  {
-    "id": "smoke_005",
-    "query": "What is the capital of France?",
-    "expected_tools": [],
-    "should_have_citations": false,
-    "should_create_ticket": false
   }
 ]

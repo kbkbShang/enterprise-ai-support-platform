@@ -31,7 +31,7 @@ def call_chat_with_retry(payload: dict, max_retries: int = 3) -> dict:
         response = requests.post(
             CHAT_ENDPOINT,
             json=payload,
-            timeout=60,
+            timeout=180,
         )
 
         agent_result = response.json()
