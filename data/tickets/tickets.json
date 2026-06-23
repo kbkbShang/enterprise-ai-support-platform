@@ -1,0 +1,597 @@
+[
+  {
+    "ticket_id": "TCK-0001",
+    "title": "VPN authentication failed",
+    "description": "User cannot connect to VPN due to authentication failure.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "authentication"
+    ],
+    "resolution": "User reauthenticated through SSO and completed MFA approval."
+  },
+  {
+    "ticket_id": "TCK-0002",
+    "title": "VPN timeout connection issue",
+    "description": "VPN connection times out after login.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "network"
+    ],
+    "resolution": "User restarted VPN client and switched to a stable network."
+  },
+  {
+    "ticket_id": "TCK-0003",
+    "title": "SSO login failed",
+    "description": "User receives invalid credential error during SSO login.",
+    "status": "resolved",
+    "priority": "high",
+    "tags": [
+      "sso",
+      "authentication"
+    ],
+    "resolution": "Password was reset through the identity portal."
+  },
+  {
+    "ticket_id": "TCK-0004",
+    "title": "MFA approval not received",
+    "description": "User does not receive MFA push notification.",
+    "status": "resolved",
+    "priority": "high",
+    "tags": [
+      "mfa",
+      "authentication"
+    ],
+    "resolution": "User re-enrolled MFA device."
+  },
+  {
+    "ticket_id": "TCK-0005",
+    "title": "Account locked after failed login attempts",
+    "description": "User account became locked.",
+    "status": "resolved",
+    "priority": "high",
+    "tags": [
+      "account",
+      "authentication"
+    ],
+    "resolution": "IT support unlocked the account and reset the password."
+  },
+  {
+    "ticket_id": "TCK-0006",
+    "title": "Software installation permission denied",
+    "description": "User cannot install approved software.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "software",
+      "permissions"
+    ],
+    "resolution": "Admin privileges were temporarily granted."
+  },
+  {
+    "ticket_id": "TCK-0007",
+    "title": "License checkout failed",
+    "description": "Engineering software cannot obtain a license.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "license",
+      "software"
+    ],
+    "resolution": "License server was restarted."
+  },
+  {
+    "ticket_id": "TCK-0008",
+    "title": "Shared drive access denied",
+    "description": "User cannot access project shared drive.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "permissions",
+      "shared-drive"
+    ],
+    "resolution": "User was added to the correct security group."
+  },
+  {
+    "ticket_id": "TCK-0009",
+    "title": "Remote desktop unavailable",
+    "description": "Cannot connect to office workstation remotely.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "remote-desktop",
+      "vpn"
+    ],
+    "resolution": "VPN connection was restored."
+  },
+  {
+    "ticket_id": "TCK-0010",
+    "title": "Email synchronization issue",
+    "description": "Outlook mailbox is not updating.",
+    "status": "resolved",
+    "priority": "low",
+    "tags": [
+      "email"
+    ],
+    "resolution": "User reauthenticated and mailbox synchronized successfully."
+  },
+  {
+    "ticket_id": "TCK-0011",
+    "title": "Mailbox synchronization delay",
+    "description": "Outlook inbox not updating.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "email"
+    ],
+    "resolution": "Mailbox profile recreated."
+  },
+  {
+    "ticket_id": "TCK-0012",
+    "title": "VPN connection drops frequently",
+    "description": "User reports intermittent VPN disconnections.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "network"
+    ],
+    "resolution": "User updated VPN client and switched VPN region."
+  },
+  {
+    "ticket_id": "TCK-0013",
+    "title": "VPN client not launching",
+    "description": "VPN application closes immediately after startup.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "software"
+    ],
+    "resolution": "VPN client was reinstalled."
+  },
+  {
+    "ticket_id": "TCK-0014",
+    "title": "SSO login redirects to blank page",
+    "description": "User cannot complete SSO login.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "sso",
+      "browser"
+    ],
+    "resolution": "Browser cache was cleared."
+  },
+  {
+    "ticket_id": "TCK-0015",
+    "title": "SSO access denied",
+    "description": "User receives access denied error.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "sso",
+      "permissions"
+    ],
+    "resolution": "User was added to the correct group."
+  },
+  {
+    "ticket_id": "TCK-0016",
+    "title": "MFA code expired",
+    "description": "User MFA code expires before verification.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "mfa",
+      "authentication"
+    ],
+    "resolution": "User synchronized device time."
+  },
+  {
+    "ticket_id": "TCK-0017",
+    "title": "Password reset email not received",
+    "description": "User requested password reset but no email arrived.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "password",
+      "email"
+    ],
+    "resolution": "Mail filters were updated."
+  },
+  {
+    "ticket_id": "TCK-0018",
+    "title": "License server unavailable",
+    "description": "Engineering software cannot obtain license.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "license",
+      "software"
+    ],
+    "resolution": "License service restarted."
+  },
+  {
+    "ticket_id": "TCK-0019",
+    "title": "Software installation blocked",
+    "description": "Approved software installation fails.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "software",
+      "permissions"
+    ],
+    "resolution": "Admin privileges granted temporarily."
+  },
+  {
+    "ticket_id": "TCK-0020",
+    "title": "Shared drive missing",
+    "description": "Project shared drive not visible.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "shared-drive",
+      "permissions"
+    ],
+    "resolution": "User added to correct security group."
+  },
+  {
+    "ticket_id": "TCK-0021",
+    "title": "Remote desktop authentication failure",
+    "description": "Remote workstation login fails.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "remote-desktop",
+      "authentication"
+    ],
+    "resolution": "Credentials were reset."
+  },
+  {
+    "ticket_id": "TCK-0022",
+    "title": "Mailbox synchronization delay",
+    "description": "Outlook inbox not updating.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "email"
+    ],
+    "resolution": "Mailbox profile recreated."
+  },
+  {
+    "ticket_id": "TCK-0023",
+    "title": "VPN connection drops frequently",
+    "description": "User reports intermittent VPN disconnections.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "network"
+    ],
+    "resolution": "User updated VPN client and switched VPN region."
+  },
+  {
+    "ticket_id": "TCK-0024",
+    "title": "VPN client not launching",
+    "description": "VPN application closes immediately after startup.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "software"
+    ],
+    "resolution": "VPN client was reinstalled."
+  },
+  {
+    "ticket_id": "TCK-0025",
+    "title": "SSO login redirects to blank page",
+    "description": "User cannot complete SSO login.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "sso",
+      "browser"
+    ],
+    "resolution": "Browser cache was cleared."
+  },
+  {
+    "ticket_id": "TCK-0026",
+    "title": "SSO access denied",
+    "description": "User receives access denied error.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "sso",
+      "permissions"
+    ],
+    "resolution": "User was added to the correct group."
+  },
+  {
+    "ticket_id": "TCK-0027",
+    "title": "MFA code expired",
+    "description": "User MFA code expires before verification.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "mfa",
+      "authentication"
+    ],
+    "resolution": "User synchronized device time."
+  },
+  {
+    "ticket_id": "TCK-0028",
+    "title": "Password reset email not received",
+    "description": "User requested password reset but no email arrived.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "password",
+      "email"
+    ],
+    "resolution": "Mail filters were updated."
+  },
+  {
+    "ticket_id": "TCK-0029",
+    "title": "License server unavailable",
+    "description": "Engineering software cannot obtain license.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "license",
+      "software"
+    ],
+    "resolution": "License service restarted."
+  },
+  {
+    "ticket_id": "TCK-0030",
+    "title": "Software installation blocked",
+    "description": "Approved software installation fails.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "software",
+      "permissions"
+    ],
+    "resolution": "Admin privileges granted temporarily."
+  },
+  {
+    "ticket_id": "TCK-0031",
+    "title": "Shared drive missing",
+    "description": "Project shared drive not visible.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "shared-drive",
+      "permissions"
+    ],
+    "resolution": "User added to correct security group."
+  },
+  {
+    "ticket_id": "TCK-0032",
+    "title": "Remote desktop authentication failure",
+    "description": "Remote workstation login fails.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "remote-desktop",
+      "authentication"
+    ],
+    "resolution": "Credentials were reset."
+  },
+  {
+    "ticket_id": "TCK-0033",
+    "title": "Mailbox synchronization delay",
+    "description": "Outlook inbox not updating.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "email"
+    ],
+    "resolution": "Mailbox profile recreated."
+  },
+  {
+    "ticket_id": "TCK-0034",
+    "title": "VPN connection drops frequently",
+    "description": "User reports intermittent VPN disconnections.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "network"
+    ],
+    "resolution": "User updated VPN client and switched VPN region."
+  },
+  {
+    "ticket_id": "TCK-0035",
+    "title": "VPN client not launching",
+    "description": "VPN application closes immediately after startup.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "software"
+    ],
+    "resolution": "VPN client was reinstalled."
+  },
+  {
+    "ticket_id": "TCK-0036",
+    "title": "SSO login redirects to blank page",
+    "description": "User cannot complete SSO login.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "sso",
+      "browser"
+    ],
+    "resolution": "Browser cache was cleared."
+  },
+  {
+    "ticket_id": "TCK-0037",
+    "title": "SSO access denied",
+    "description": "User receives access denied error.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "sso",
+      "permissions"
+    ],
+    "resolution": "User was added to the correct group."
+  },
+  {
+    "ticket_id": "TCK-0038",
+    "title": "MFA code expired",
+    "description": "User MFA code expires before verification.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "mfa",
+      "authentication"
+    ],
+    "resolution": "User synchronized device time."
+  },
+  {
+    "ticket_id": "TCK-0039",
+    "title": "Password reset email not received",
+    "description": "User requested password reset but no email arrived.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "password",
+      "email"
+    ],
+    "resolution": "Mail filters were updated."
+  },
+  {
+    "ticket_id": "TCK-0040",
+    "title": "License server unavailable",
+    "description": "Engineering software cannot obtain license.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "license",
+      "software"
+    ],
+    "resolution": "License service restarted."
+  },
+  {
+    "ticket_id": "TCK-0041",
+    "title": "Software installation blocked",
+    "description": "Approved software installation fails.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "software",
+      "permissions"
+    ],
+    "resolution": "Admin privileges granted temporarily."
+  },
+  {
+    "ticket_id": "TCK-0042",
+    "title": "Shared drive missing",
+    "description": "Project shared drive not visible.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "shared-drive",
+      "permissions"
+    ],
+    "resolution": "User added to correct security group."
+  },
+  {
+    "ticket_id": "TCK-0043",
+    "title": "Remote desktop authentication failure",
+    "description": "Remote workstation login fails.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "remote-desktop",
+      "authentication"
+    ],
+    "resolution": "Credentials were reset."
+  },
+  {
+    "ticket_id": "TCK-0044",
+    "title": "Mailbox synchronization delay",
+    "description": "Outlook inbox not updating.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "email"
+    ],
+    "resolution": "Mailbox profile recreated."
+  },
+  {
+    "ticket_id": "TCK-0045",
+    "title": "VPN connection drops frequently",
+    "description": "User reports intermittent VPN disconnections.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "network"
+    ],
+    "resolution": "User updated VPN client and switched VPN region."
+  },
+  {
+    "ticket_id": "TCK-0046",
+    "title": "VPN client not launching",
+    "description": "VPN application closes immediately after startup.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "vpn",
+      "software"
+    ],
+    "resolution": "VPN client was reinstalled."
+  },
+  {
+    "ticket_id": "TCK-0047",
+    "title": "SSO login redirects to blank page",
+    "description": "User cannot complete SSO login.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "sso",
+      "browser"
+    ],
+    "resolution": "Browser cache was cleared."
+  },
+  {
+    "ticket_id": "TCK-0048",
+    "title": "SSO access denied",
+    "description": "User receives access denied error.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "sso",
+      "permissions"
+    ],
+    "resolution": "User was added to the correct group."
+  },
+  {
+    "ticket_id": "TCK-0049",
+    "title": "MFA code expired",
+    "description": "User MFA code expires before verification.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "mfa",
+      "authentication"
+    ],
+    "resolution": "User synchronized device time."
+  },
+  {
+    "ticket_id": "TCK-0050",
+    "title": "Password reset email not received",
+    "description": "User requested password reset but no email arrived.",
+    "status": "resolved",
+    "priority": "medium",
+    "tags": [
+      "password",
+      "email"
+    ],
+    "resolution": "Mail filters were updated."
+  }
+]

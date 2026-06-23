@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+data/chroma/
+eval/report.json
+.vscode/settings.json

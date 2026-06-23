@@ -1,0 +1,190 @@
+[
+  {
+    "draft_id": "DRF-0001",
+    "title": "VPN still not working",
+    "description": "User cannot connect to VPN after restarting the client and completing MFA.",
+    "priority": "high",
+    "tags": [
+      "vpn",
+      "authentication"
+    ],
+    "status": "draft",
+    "created_at": "2026-06-05T22:42:53.764446+00:00"
+  },
+  {
+    "draft_id": "DRF-0002",
+    "title": "VPN still not working",
+    "description": "User cannot connect after MFA approval.",
+    "priority": "high",
+    "tags": [
+      "vpn"
+    ],
+    "status": "draft",
+    "created_at": "2026-06-05T23:09:50.238087+00:00"
+  },
+  {
+    "draft_id": "DRF-0003",
+    "title": "Unresolved support request: The office coffee machine is making loud noise",
+    "description": "User asked: The office coffee machine is making loud noise. No sufficient KB evidence was found.",
+    "priority": "medium",
+    "tags": [
+      "unresolved"
+    ],
+    "status": "draft",
+    "created_at": "2026-06-06T18:44:25.310392+00:00"
+  },
+  {
+    "draft_id": "DRF-0004",
+    "title": "Office coffee machine making loud noise",
+    "description": "The office coffee machine is making a loud noise, indicating a potential malfunction.",
+    "priority": "medium",
+    "tags": [],
+    "status": "draft",
+    "created_at": "2026-06-11T22:40:06.942401+00:00"
+  },
+  {
+    "draft_id": "DRF-0005",
+    "title": "Broken office chair",
+    "description": "User reported their office chair is broken and needs support follow-up.",
+    "priority": "medium",
+    "tags": [],
+    "status": "draft",
+    "created_at": "2026-06-11T22:40:20.556094+00:00"
+  },
+  {
+    "draft_id": "DRF-0006",
+    "title": "Cafeteria microwave stopped working",
+    "description": "The cafeteria microwave stopped working.",
+    "priority": "medium",
+    "tags": [],
+    "status": "draft",
+    "created_at": "2026-06-11T22:40:43.695824+00:00"
+  },
+  {
+    "draft_id": "DRF-0007",
+    "title": "Account Locked - Cannot Access Company Systems",
+    "description": "I cannot access any company system after my account was locked",
+    "priority": "high",
+    "tags": [
+      "account",
+      "access",
+      "locked"
+    ],
+    "status": "draft",
+    "created_at": "2026-06-11T22:41:20.525114+00:00"
+  },
+  {
+    "draft_id": "DRF-0008",
+    "title": "Broken office chair",
+    "description": "Broken office chair",
+    "priority": "medium",
+    "tags": [],
+    "status": "draft",
+    "created_at": "2026-06-12T05:06:09.707884+00:00"
+  },
+  {
+    "draft_id": "DRF-0009",
+    "title": "Office coffee machine making loud noise",
+    "description": "The office coffee machine is making a loud noise, indicating a potential malfunction or need for maintenance.",
+    "priority": "medium",
+    "tags": [],
+    "status": "draft",
+    "created_at": "2026-06-12T18:18:28.517225+00:00"
+  },
+  {
+    "draft_id": "DRF-0010",
+    "title": "Broken Office Chair",
+    "description": "User reported their office chair is broken and needs support follow-up.",
+    "priority": "medium",
+    "tags": [
+      "facilities",
+      "hardware"
+    ],
+    "status": "draft",
+    "created_at": "2026-06-12T18:18:30.989671+00:00"
+  },
+  {
+    "draft_id": "DRF-0011",
+    "title": "Cafeteria Microwave Not Working",
+    "description": "The cafeteria microwave stopped working.",
+    "priority": "medium",
+    "tags": [],
+    "status": "draft",
+    "created_at": "2026-06-12T18:18:33.384840+00:00"
+  },
+  {
+    "draft_id": "DRF-0012",
+    "title": "Account Locked - Cannot Access Company Systems",
+    "description": "I cannot access any company system after my account was locked",
+    "priority": "high",
+    "tags": [
+      "account",
+      "locked",
+      "access"
+    ],
+    "status": "draft",
+    "created_at": "2026-06-12T18:18:48.755379+00:00"
+  },
+  {
+    "draft_id": "DRF-0013",
+    "title": "Repeated MFA failures on my account",
+    "description": "Repeated MFA failures on my account",
+    "priority": "high",
+    "tags": [
+      "MFA"
+    ],
+    "status": "draft",
+    "created_at": "2026-06-12T18:19:03.861748+00:00"
+  },
+  {
+    "draft_id": "DRF-0014",
+    "title": "Office coffee machine making loud noise",
+    "description": "The office coffee machine is making a loud noise.",
+    "priority": "medium",
+    "tags": [],
+    "status": "draft",
+    "created_at": "2026-06-12T18:41:12.895506+00:00"
+  },
+  {
+    "draft_id": "DRF-0015",
+    "title": "Broken Office Chair",
+    "description": "User reported a broken office chair and requires support follow-up.",
+    "priority": "medium",
+    "tags": [],
+    "status": "draft",
+    "created_at": "2026-06-12T18:41:15.453665+00:00"
+  },
+  {
+    "draft_id": "DRF-0016",
+    "title": "Cafeteria microwave not working",
+    "description": "The cafeteria microwave stopped working.",
+    "priority": "medium",
+    "tags": [],
+    "status": "draft",
+    "created_at": "2026-06-12T18:41:17.494418+00:00"
+  },
+  {
+    "draft_id": "DRF-0017",
+    "title": "Cannot access company system",
+    "description": "I cannot access any company system after my account was locked",
+    "priority": "high",
+    "tags": [
+      "access",
+      "account",
+      "locked"
+    ],
+    "status": "draft",
+    "created_at": "2026-06-12T18:41:32.395659+00:00"
+  },
+  {
+    "draft_id": "DRF-0018",
+    "title": "Repeated MFA failures on account",
+    "description": "I am experiencing repeated MFA failures on my account.",
+    "priority": "medium",
+    "tags": [
+      "MFA"
+    ],
+    "status": "draft",
+    "created_at": "2026-06-12T18:41:56.068415+00:00"
+  }
+]

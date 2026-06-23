@@ -1,0 +1,145 @@
+[
+  {
+    "id": "eval_001",
+    "query": "VPN authentication failed",
+    "expected_tools": ["search_kb"],
+    "should_have_citations": true,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_002",
+    "query": "How do I connect to VPN using the company VPN client?",
+    "expected_tools": ["search_kb"],
+    "should_have_citations": true,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_003",
+    "query": "Give me the full VPN support policy including setup, common errors, and escalation steps.",
+    "expected_tools": ["search_kb"],
+    "optional_tools": ["get_kb_doc"],
+    "should_have_citations": true,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_004",
+    "query": "SSO login failed with invalid credentials",
+    "expected_tools": ["search_kb"],
+    "should_have_citations": true,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_005",
+    "query": "Engineering software license checkout failed",
+    "expected_tools": ["search_kb"],
+    "should_have_citations": true,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_006",
+    "query": "Software installation failed because permission was denied",
+    "expected_tools": ["search_kb"],
+    "should_have_citations": true,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_007",
+    "query": "Find a similar resolved ticket for VPN authentication failure",
+    "expected_tools": ["search_tickets"],
+    "should_have_citations": false,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_008",
+    "query": "Create a ticket draft because the office coffee machine is making loud noise",
+    "expected_tools": ["create_ticket_draft"],
+    "should_have_citations": false,
+    "should_create_ticket": true
+  },
+  {
+    "id": "eval_009",
+    "query": "My office chair is broken and I need support follow-up",
+    "expected_tools": ["create_ticket_draft"],
+    "should_have_citations": false,
+    "should_create_ticket": true
+  },
+  {
+    "id": "eval_010",
+    "query": "The cafeteria microwave stopped working. Please create a support ticket draft.",
+    "expected_tools": ["create_ticket_draft"],
+    "should_have_citations": false,
+    "should_create_ticket": true
+  },
+  {
+    "id": "eval_011",
+    "query": "How do I reset my password?",
+    "expected_tools": ["search_kb"],
+    "should_have_citations": true,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_012",
+    "query": "MFA approval is not showing on my phone",
+    "expected_tools": ["search_kb"],
+    "should_have_citations": true,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_013",
+    "query": "I cannot access the shared drive",
+    "expected_tools": ["search_kb"],
+    "should_have_citations": true,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_014",
+    "query": "Find historical tickets about license server unavailable",
+    "expected_tools": ["search_tickets"],
+    "should_have_citations": false,
+    "should_create_ticket": false
+  },
+  {
+    "id": "eval_015",
+    "query": "Create a high priority ticket draft: I cannot access any company system after my account was locked",
+    "expected_tools": ["create_ticket_draft"],
+    "should_have_citations": false,
+    "should_create_ticket": true
+  },
+  {
+  "id": "eval_016",
+  "query": "Give me the complete software installation policy document",
+  "expected_tools": ["search_kb"],
+  "optional_tools": ["get_kb_doc"],
+  "should_have_citations": true,
+  "should_create_ticket": false
+},
+{
+  "id": "eval_017",
+  "query": "Find similar resolved tickets and tell me how to fix VPN authentication failure",
+  "expected_tools": ["search_tickets"],
+  "optional_tools": ["search_kb"],
+  "should_have_citations": true,
+  "should_create_ticket": false
+},
+{
+  "id": "eval_018",
+  "query": "My printer is printing blank pages",
+  "expected_tools": ["search_kb"],
+  "should_have_citations": false,
+  "should_create_ticket": true
+},
+{
+  "id": "eval_019",
+  "query": "What is the capital of France?",
+  "expected_tools": [],
+  "should_have_citations": false,
+  "should_create_ticket": false
+},
+{
+  "id": "eval_020",
+  "query": "Create a support ticket draft for repeated MFA failures on my account",
+  "expected_tools": ["create_ticket_draft"],
+  "should_have_citations": false,
+  "should_create_ticket": true
+}
+]

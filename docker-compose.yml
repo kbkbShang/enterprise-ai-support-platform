@@ -1,0 +1,37 @@
+services:
+  tool-server:
+    build: .
+    container_name: enterprise-tool-server
+    command: uvicorn src.mcp_server.server:app --host 0.0.0.0 --port 7001
+    ports:
+      - "7001:7001"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+
+  agent-api:
+    build: .
+    container_name: enterprise-agent-api
+    command: uvicorn src.agent_api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - TOOL_SERVER_URL=http://tool-server:7001
+    depends_on:
+      - tool-server
+    volumes:
+      - ./data:/app/data
+
+  ui:
+    build: .
+    container_name: enterprise-ui
+    command: streamlit run src/ui/app.py --server.address 0.0.0.0 --server.port 8501
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://agent-api:8000/chat
+    depends_on:
+      - agent-api
