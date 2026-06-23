@@ -1,0 +1,91 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: gen-lang-client-0399579856
+  REGION: us-central1
+  REPO: support-agent-repo
+  TOOL_SERVER_URL: https://tool-server-105113573922.us-central1.run.app
+  AGENT_API_URL: https://agent-api-105113573922.us-central1.run.app/chat
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and Push Tool Server
+        run: |
+          docker build -f Dockerfile.tool -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/tool-server:${{ github.sha }} .
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/tool-server:${{ github.sha }}
+
+      - name: Deploy Tool Server
+        run: |
+          gcloud run deploy tool-server \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/tool-server:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --memory 2Gi \
+            --cpu 2 \
+            --timeout 300 \
+            --min-instances 0 \
+            --max-instances 3
+
+      - name: Build and Push Agent API
+        run: |
+          docker build -f Dockerfile.agent -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/agent-api:${{ github.sha }} .
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/agent-api:${{ github.sha }}
+
+      - name: Deploy Agent API
+        run: |
+          gcloud run deploy agent-api \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/agent-api:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --memory 2Gi \
+            --cpu 2 \
+            --timeout 300 \
+            --min-instances 0 \
+            --max-instances 3 \
+            --set-env-vars TOOL_SERVER_URL=${{ env.TOOL_SERVER_URL }},GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+
+      - name: Build and Push UI
+        run: |
+          docker build -f Dockerfile.ui -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/ui:${{ github.sha }} .
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/ui:${{ github.sha }}
+
+      - name: Deploy UI
+        run: |
+          gcloud run deploy support-agent-ui \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/ui:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --memory 1Gi \
+            --cpu 1 \
+            --timeout 300 \
+            --min-instances 0 \
+            --max-instances 2 \
+            --set-env-vars API_URL=${{ env.AGENT_API_URL }}

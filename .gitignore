@@ -6,3 +6,4 @@ venv/
 data/chroma/
 eval/report.json
 .vscode/settings.json
+github-actions-key.json
