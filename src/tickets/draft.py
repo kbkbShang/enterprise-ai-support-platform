@@ -1,6 +1,11 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+from src.tickets.firestore_store import (
+    load_ticket_drafts,
+    save_ticket_draft,
+)
+import uuid
 
 DRAFTS_PATH = Path("data/tickets/ticket_drafts.json")
 
@@ -45,9 +50,9 @@ def create_ticket_draft(
     """
     Create and save a new ticket draft.
     """
-    drafts = load_ticket_drafts()
+    #drafts = load_ticket_drafts()
 
-    draft_id = generate_draft_id(drafts)
+    draft_id = f"DRF-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:4]}"
 
     new_draft = {
         "draft_id": draft_id,
@@ -59,8 +64,7 @@ def create_ticket_draft(
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    drafts.append(new_draft)
-    save_ticket_drafts(drafts)
+    save_ticket_draft(new_draft)
 
     return {
         "draft_id": draft_id,

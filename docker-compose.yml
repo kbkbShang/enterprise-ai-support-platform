@@ -7,9 +7,14 @@ services:
       - "7001:7001"
     env_file:
       - .env
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/application_default_credentials.json
+      - GOOGLE_CLOUD_PROJECT=gen-lang-client-0399579856
     volumes:
       - ./data:/app/data
+      - C:/Users/Administrator/AppData/Roaming/gcloud/application_default_credentials.json:/gcloud/application_default_credentials.json:ro
 
+    
   agent-api:
     build: .
     container_name: enterprise-agent-api
