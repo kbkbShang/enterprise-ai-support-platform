@@ -6,6 +6,10 @@ from sentence_transformers import SentenceTransformer
 from src.rag.loader import load_kb_documents
 from src.rag.chunker import chunk_kb_documents
 
+from src.rag.firestore_kb_store import (
+    upsert_kb_doc,
+    upsert_kb_chunk,
+)
 
 CHROMA_DIR = Path("data/chroma")
 COLLECTION_NAME = "kb_chunks"
@@ -13,18 +17,32 @@ EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 
 
 def build_index():
-    """
-    Build a Chroma vector index from KB markdown documents.
-    """
     print("Loading KB documents...")
     docs = load_kb_documents()
-
     print(f"Loaded {len(docs)} documents")
+
+    print("Syncing full KB docs to Firestore...")
+    for doc in docs:
+        upsert_kb_doc(
+            doc_id=doc["doc_id"],
+            title=doc.get("title", doc["doc_id"]),
+            text=doc["content"],
+            source_path=doc.get("source_path", ""),
+        )
 
     print("Chunking documents...")
     chunks = chunk_kb_documents(docs)
-
     print(f"Created {len(chunks)} chunks")
+
+    print("Syncing KB chunks to Firestore...")
+    for chunk in chunks:
+        upsert_kb_chunk(
+            chunk_id=chunk["chunk_id"],
+            doc_id=chunk["doc_id"],
+            heading=chunk.get("heading", ""),
+            text=chunk["text"],
+            source_path=chunk.get("source_path", ""),
+        )
 
     print("Loading embedding model...")
     model = SentenceTransformer(EMBEDDING_MODEL_NAME)
@@ -36,9 +54,9 @@ def build_index():
         {
             "doc_id": chunk["doc_id"],
             "chunk_id": chunk["chunk_id"],
-            "title": chunk["title"],
-            "heading": chunk["heading"],
-            "source_path": chunk["source_path"],
+            "title": chunk.get("title", ""),
+            "heading": chunk.get("heading", ""),
+            "source_path": chunk.get("source_path", ""),
         }
         for chunk in chunks
     ]
@@ -49,7 +67,6 @@ def build_index():
     print("Creating Chroma collection...")
     client = chromadb.PersistentClient(path=str(CHROMA_DIR))
 
-    # Delete old collection if it exists, so rebuild is clean
     existing_collections = [c.name for c in client.list_collections()]
     if COLLECTION_NAME in existing_collections:
         client.delete_collection(COLLECTION_NAME)
