@@ -1,0 +1,7 @@
+services:
+  tool-server:
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/credentials.json
+      - GOOGLE_CLOUD_PROJECT=gen-lang-client-0399579856
+    volumes:
+      - ${GOOGLE_GHA_CREDS_PATH}:/gcloud/credentials.json:ro
