@@ -4,7 +4,8 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 
 from src.rag.loader import load_kb_documents
-
+from src.rag.firestore_kb_store import get_kb_chunk
+from src.rag.firestore_kb_store import get_kb_doc as get_kb_doc_firestore
 
 CHROMA_DIR = Path("data/chroma")
 COLLECTION_NAME = "kb_chunks"
@@ -56,37 +57,47 @@ def search_kb(query: str, top_k: int = 5) -> list[dict]:
     for doc_text, metadata, distance in zip(documents, metadatas, distances):
         score = 1 / (1 + distance)
 
+        chunk_id = metadata["chunk_id"]
+
+        chunk_record = get_kb_chunk(chunk_id)
+
+        if chunk_record:
+            text = chunk_record.get("text", doc_text)
+            heading = chunk_record.get(
+                "heading",
+                metadata.get("heading", "")
+            )
+        else:
+            text = doc_text
+            heading = metadata.get("heading", "")
+
         output.append(
             {
                 "doc_id": metadata["doc_id"],
-                "chunk_id": metadata["chunk_id"],
+                "chunk_id": chunk_id,
                 "score": round(score, 4),
-                "heading": metadata["heading"],
-                "text": doc_text,
+                "heading": heading,
+                "text": text,
             }
-        )
+    )
 
     return output
 
 
 def get_kb_doc(doc_id: str) -> dict | None:
-    """
-    Return full KB markdown document by doc_id.
-    """
-    docs = load_kb_documents()
+    record = get_kb_doc_firestore(doc_id)
 
-    for doc in docs:
-        if doc["doc_id"] == doc_id:
-            return {
-                "doc_id": doc["doc_id"],
-                "title": doc["title"],
-                "content": doc["content"],
-                "metadata": {
-                    "source_path": doc["source_path"]
-                }
-            }
+    if not record:
+        return None
 
-    return None
+    return {
+        "doc_id": record["doc_id"],
+        "title": record["title"],
+        "content": record["text"],
+        "metadata": {
+            "source_path": record["source_path"]
+        }
+    }
 
 
 if __name__ == "__main__":
