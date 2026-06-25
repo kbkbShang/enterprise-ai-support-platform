@@ -13,6 +13,7 @@ from src.jobs.job_store import (
     should_cancel,
     increment_attempt,
 )
+from src.jobs.dlq_client import publish_to_dlq
 
 import time
 
@@ -56,7 +57,7 @@ def run_agent_with_retry(job_id: str, query: str, max_attempts: int = 3) -> dict
 
         try:
 
-            #if "force retry" in query.lower() and attempt < max_attempts:
+            #if "force retry" in query.lower():
                 #raise RuntimeError("Simulated transient failure for retry testing.")
     
             result = run_gemini_agent(query)
@@ -150,12 +151,19 @@ def process_job(job_id: str):
         if stop_if_cancelled(job_id):
             return
 
-        fail_job(
-            job_id,
-            str(e),
+        fail_job(job_id, str(e))
+
+        dlq_message_id = publish_to_dlq(
+            job_id=job_id,
+            error=str(e),
         )
 
-        print(f"Job failed: {job_id} - {str(e)}")
+        append_job_progress(
+            job_id,
+            f"Job sent to DLQ with message_id={dlq_message_id}.",
+        )
+
+        print(f"Job failed and sent to DLQ: {job_id} - {str(e)}")
 
 
 def callback(message):
