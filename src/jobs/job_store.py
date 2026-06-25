@@ -32,6 +32,8 @@ def create_support_job(
         "progress": ["Job created."],
         "result": None,
         "error": None,
+        "attempt_count": 0,
+        "max_attempts": 3,
         "created_at": now_iso(),
         "updated_at": now_iso(),
         "started_at": None,
@@ -140,6 +142,20 @@ def fail_job(
         },
     )
 
+def increment_attempt(job_id: str) -> dict | None:
+    job = get_support_job(job_id)
+
+    if not job:
+        return None
+
+    current_attempt = job.get("attempt_count", 0) + 1
+
+    return update_support_job(
+        job_id,
+        {
+            "attempt_count": current_attempt,
+        },
+    )
 
 def cancel_job(job_id: str) -> dict | None:
     job = get_support_job(job_id)

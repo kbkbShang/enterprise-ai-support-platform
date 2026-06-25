@@ -11,7 +11,10 @@ from src.jobs.job_store import (
     save_job_result,
     fail_job,
     should_cancel,
+    increment_attempt,
 )
+
+import time
 
 #print("Worker module loaded")
 PROJECT_ID = "gen-lang-client-0399579856"
@@ -37,6 +40,53 @@ def stop_if_cancelled(job_id: str) -> bool:
 
     return False
 
+def run_agent_with_retry(job_id: str, query: str, max_attempts: int = 3) -> dict:
+    last_error = None
+
+    for attempt in range(1, max_attempts + 1):
+        if stop_if_cancelled(job_id):
+            raise RuntimeError("Job was cancelled.")
+
+        increment_attempt(job_id)
+
+        append_job_progress(
+            job_id,
+            f"Agent attempt {attempt}/{max_attempts} started.",
+        )
+
+        try:
+
+            #if "force retry" in query.lower() and attempt < max_attempts:
+                #raise RuntimeError("Simulated transient failure for retry testing.")
+    
+            result = run_gemini_agent(query)
+
+            append_job_progress(
+                job_id,
+                f"Agent attempt {attempt}/{max_attempts} succeeded.",
+            )
+
+            return result
+
+        except Exception as e:
+            last_error = str(e)
+
+            append_job_progress(
+                job_id,
+                f"Agent attempt {attempt}/{max_attempts} failed: {last_error}",
+            )
+
+            if attempt < max_attempts:
+                sleep_seconds = 2 ** attempt
+
+                append_job_progress(
+                    job_id,
+                    f"Retrying after {sleep_seconds} seconds.",
+                )
+
+                time.sleep(sleep_seconds)
+
+    raise RuntimeError(last_error or "Agent failed after retries.")
 
 def process_job(job_id: str):
     job = get_support_job(job_id)
@@ -73,7 +123,13 @@ def process_job(job_id: str):
         if stop_if_cancelled(job_id):
             return
 
-        result = run_gemini_agent(query)
+        max_attempts = job.get("max_attempts", 3)
+
+        result = run_agent_with_retry(
+            job_id=job_id,
+            query=query,
+            max_attempts=max_attempts,
+        )
 
         if stop_if_cancelled(job_id):
             return
@@ -118,7 +174,6 @@ def callback(message):
         print(f"Worker error for job {job_id}: {str(e)}")
 
         message.nack()
-
 
 def main():
     #print("Entering main()")
