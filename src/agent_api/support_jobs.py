@@ -12,6 +12,8 @@ from src.jobs.job_store import (
     save_feedback,
 )
 
+from src.jobs.pubsub_client import publish_job
+
 
 router = APIRouter(
     prefix="/support-jobs",
@@ -25,11 +27,13 @@ def create_job(request: CreateSupportJobRequest):
         query=request.query,
         session_id=request.session_id,
     )
+    message_id = publish_job(job["job_id"])
 
     return {
         "job_id": job["job_id"],
         "status": job["status"],
         "created_at": job["created_at"],
+        "message_id": message_id,
     }
 
 

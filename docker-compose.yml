@@ -2,7 +2,7 @@ services:
   tool-server:
     build: .
     container_name: enterprise-tool-server
-    command: uvicorn src.mcp_server.server:app --host 0.0.0.0 --port 7001
+    command: uvicorn src.mcp_server.server:app --reload --host 0.0.0.0 --port 7001
     ports:
       - "7001:7001"
     env_file:
@@ -11,23 +11,26 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/application_default_credentials.json
       - GOOGLE_CLOUD_PROJECT=gen-lang-client-0399579856
     volumes:
-      - ./data:/app/data
+      - .:/app
+      - C:/Users/Administrator/AppData/Roaming/gcloud/application_default_credentials.json:/gcloud/application_default_credentials.json:ro
 
-    
   agent-api:
     build: .
     container_name: enterprise-agent-api
-    command: uvicorn src.agent_api.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn src.agent_api.main:app --reload --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
     env_file:
       - .env
     environment:
       - TOOL_SERVER_URL=http://tool-server:7001
+      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/application_default_credentials.json
+      - GOOGLE_CLOUD_PROJECT=gen-lang-client-0399579856
     depends_on:
       - tool-server
     volumes:
-      - ./data:/app/data
+      - .:/app
+      - C:/Users/Administrator/AppData/Roaming/gcloud/application_default_credentials.json:/gcloud/application_default_credentials.json:ro
 
   ui:
     build: .
@@ -39,3 +42,5 @@ services:
       - API_URL=http://agent-api:8000/chat
     depends_on:
       - agent-api
+    volumes:
+      - .:/app
