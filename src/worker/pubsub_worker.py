@@ -22,6 +22,8 @@ import time
 PROJECT_ID = "gen-lang-client-0399579856"
 SUBSCRIPTION_ID = "support-jobs-sub"
 
+MAX_WORKERS = int(os.getenv("MAX_WORKERS", "4"))
+
 WORKER_ID = os.getenv("WORKER_ID", socket.gethostname())
 
 subscriber = pubsub_v1.SubscriberClient()
@@ -92,6 +94,7 @@ def run_agent_with_retry(job_id: str, query: str, max_attempts: int = 3) -> dict
     raise RuntimeError(last_error or "Agent failed after retries.")
 
 def process_job(job_id: str):
+    time.sleep(10)
     job = get_support_job(job_id)
 
     if not job:
@@ -190,9 +193,14 @@ def main():
     #print(f"Listening for messages on {subscription_path}")
     print(f"Listening for messages on {subscription_path}")
 
+    flow_control = pubsub_v1.types.FlowControl(
+        max_messages=MAX_WORKERS
+    )
+
     streaming_pull_future = subscriber.subscribe(
         subscription_path,
         callback=callback,
+        flow_control=flow_control,
     )
 
     try:
