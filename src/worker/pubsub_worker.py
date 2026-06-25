@@ -6,10 +6,11 @@ from google.cloud import pubsub_v1
 from src.agent_api.gemini_agent_v3 import run_gemini_agent
 from src.jobs.job_store import (
     get_support_job,
-    update_support_job,
+    mark_job_running,
     append_job_progress,
     save_job_result,
     fail_job,
+    should_cancel,
 )
 
 #print("Worker module loaded")
@@ -25,6 +26,18 @@ subscription_path = subscriber.subscription_path(
 )
 
 
+def stop_if_cancelled(job_id: str) -> bool:
+    if should_cancel(job_id):
+        append_job_progress(
+            job_id,
+            "Worker detected cancellation. Stopping execution.",
+        )
+        print(f"Job cancelled: {job_id}")
+        return True
+
+    return False
+
+
 def process_job(job_id: str):
     job = get_support_job(job_id)
 
@@ -32,21 +45,22 @@ def process_job(job_id: str):
         print(f"Job not found: {job_id}")
         return
 
-    if job.get("status") == "cancelled":
-        print(f"Job already cancelled: {job_id}")
+    if stop_if_cancelled(job_id):
         return
 
-    update_support_job(
-        job_id,
-        {
-            "status": "running",
-        },
-    )
+    job = mark_job_running(job_id)
+
+    if not job:
+        print(f"Job not found when marking running: {job_id}")
+        return
 
     append_job_progress(
         job_id,
         "Worker started processing the job.",
     )
+
+    if stop_if_cancelled(job_id):
+        return
 
     try:
         query = job["query"]
@@ -56,7 +70,13 @@ def process_job(job_id: str):
             "Running agent workflow.",
         )
 
+        if stop_if_cancelled(job_id):
+            return
+
         result = run_gemini_agent(query)
+
+        if stop_if_cancelled(job_id):
+            return
 
         append_job_progress(
             job_id,
@@ -71,6 +91,9 @@ def process_job(job_id: str):
         print(f"Job completed: {job_id}")
 
     except Exception as e:
+        if stop_if_cancelled(job_id):
+            return
+
         fail_job(
             job_id,
             str(e),

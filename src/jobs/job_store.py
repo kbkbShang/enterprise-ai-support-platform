@@ -12,6 +12,7 @@ db = firestore.Client(
 JOBS_COLLECTION = "support_jobs"
 FEEDBACK_COLLECTION = "support_feedback"
 
+TERMINAL_STATUSES = {"completed", "failed", "cancelled"}
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -28,14 +29,13 @@ def create_support_job(
         "query": query,
         "session_id": session_id,
         "status": "queued",
-        "progress": [
-            "Job created"
-        ],
+        "progress": ["Job created."],
         "result": None,
         "error": None,
         "created_at": now_iso(),
         "updated_at": now_iso(),
-        "cancel_requested": False,
+        "started_at": None,
+        "finished_at": None,
     }
 
     db.collection(JOBS_COLLECTION).document(job_id).set(job)
@@ -79,17 +79,42 @@ def append_job_progress(
 
     return get_support_job(job_id)
 
+def mark_job_running(job_id: str) -> dict | None:
+    job = get_support_job(job_id)
+
+    if not job:
+        return None
+
+    if job["status"] in TERMINAL_STATUSES:
+        return job
+
+    return update_support_job(
+        job_id,
+        {
+            "status": "running",
+            "started_at": now_iso(),
+        },
+    )
 
 def save_job_result(
     job_id: str,
     result: dict,
 ) -> dict | None:
+    job = get_support_job(job_id)
+
+    if not job:
+        return None
+
+    if job["status"] == "cancelled":
+        return job
+
     return update_support_job(
         job_id,
         {
             "status": "completed",
             "result": result,
             "error": None,
+            "finished_at": now_iso(),
         },
     )
 
@@ -98,11 +123,20 @@ def fail_job(
     job_id: str,
     error: str,
 ) -> dict | None:
+    job = get_support_job(job_id)
+
+    if not job:
+        return None
+
+    if job["status"] == "cancelled":
+        return job
+
     return update_support_job(
         job_id,
         {
             "status": "failed",
             "error": error,
+            "finished_at": now_iso(),
         },
     )
 
@@ -113,17 +147,24 @@ def cancel_job(job_id: str) -> dict | None:
     if not job:
         return None
 
-    if job["status"] in ["completed", "failed", "cancelled"]:
+    if job["status"] in TERMINAL_STATUSES:
         return job
 
     return update_support_job(
         job_id,
         {
             "status": "cancelled",
-            "cancel_requested": True,
+            "finished_at": now_iso(),
         },
     )
 
+def should_cancel(job_id: str) -> bool:
+    job = get_support_job(job_id)
+
+    if not job:
+        return True
+
+    return job.get("status") == "cancelled"
 
 def save_feedback(
     job_id: str,

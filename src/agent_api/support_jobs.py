@@ -53,7 +53,6 @@ def get_job_status(job_id: str):
         "progress": job.get("progress", []),
         "created_at": job.get("created_at"),
         "updated_at": job.get("updated_at"),
-        "cancel_requested": job.get("cancel_requested", False),
     }
 
 
@@ -67,18 +66,34 @@ def get_job_result(job_id: str):
             detail="Job not found",
         )
 
-    if job["status"] != "completed":
+    if job["status"] == "completed":
         return {
             "job_id": job_id,
             "status": job["status"],
+            "result": job.get("result"),
+        }
+
+    if job["status"] == "cancelled":
+        return {
+            "job_id": job_id,
+            "status": "cancelled",
             "result": None,
-            "message": "Job has not completed yet.",
+            "message": "Job was cancelled before completion.",
+        }
+
+    if job["status"] == "failed":
+        return {
+            "job_id": job_id,
+            "status": "failed",
+            "result": None,
+            "error": job.get("error"),
         }
 
     return {
         "job_id": job_id,
         "status": job["status"],
-        "result": job.get("result"),
+        "result": None,
+        "message": "Job is still in progress.",
     }
 
 
