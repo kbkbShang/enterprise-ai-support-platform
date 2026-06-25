@@ -12,7 +12,6 @@ services:
       - GOOGLE_CLOUD_PROJECT=gen-lang-client-0399579856
     volumes:
       - .:/app
-      - C:/Users/Administrator/AppData/Roaming/gcloud/application_default_credentials.json:/gcloud/application_default_credentials.json:ro
 
   agent-api:
     build: .
@@ -30,7 +29,6 @@ services:
       - tool-server
     volumes:
       - .:/app
-      - C:/Users/Administrator/AppData/Roaming/gcloud/application_default_credentials.json:/gcloud/application_default_credentials.json:ro
 
   ui:
     build: .
