@@ -1,4 +1,4 @@
-print("TOP OF WORKER FILE", flush=True)
+#print("TOP OF WORKER FILE", flush=True)
 import time
 
 from google.cloud import pubsub_v1
@@ -12,7 +12,7 @@ from src.jobs.job_store import (
     fail_job,
 )
 
-print("Worker module loaded")
+#print("Worker module loaded")
 PROJECT_ID = "gen-lang-client-0399579856"
 SUBSCRIPTION_ID = "support-jobs-sub"
 
@@ -98,8 +98,8 @@ def callback(message):
 
 
 def main():
-    print("Entering main()")
-    print(f"Listening for messages on {subscription_path}")
+    #print("Entering main()")
+    #print(f"Listening for messages on {subscription_path}")
     print(f"Listening for messages on {subscription_path}")
 
     streaming_pull_future = subscriber.subscribe(
@@ -111,8 +111,9 @@ def main():
         streaming_pull_future.result()
 
     except KeyboardInterrupt:
+        print("Stopping worker...")
         streaming_pull_future.cancel()
-
+        streaming_pull_future.result()   
         print("Worker stopped.")
 
 
