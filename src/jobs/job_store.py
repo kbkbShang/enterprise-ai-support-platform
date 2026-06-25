@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 import uuid
 
 from google.cloud import firestore
-
+from datetime import datetime, timezone
 
 db = firestore.Client(
     project="gen-lang-client-0399579856",
@@ -17,6 +17,11 @@ TERMINAL_STATUSES = {"completed", "failed", "cancelled"}
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
+def parse_iso(ts: str):
+    return datetime.fromisoformat(ts)
+
+def diff_ms(start: str, end: str) -> int:
+    return int((parse_iso(end) - parse_iso(start)).total_seconds() * 1000)
 
 def create_support_job(
     query: str,
@@ -34,6 +39,10 @@ def create_support_job(
         "error": None,
         "attempt_count": 0,
         "max_attempts": 3,
+        "worker_id": None,
+        "queue_latency_ms": None,
+        "processing_latency_ms": None,
+        "dlq_message_id": None,
         "created_at": now_iso(),
         "updated_at": now_iso(),
         "started_at": None,
@@ -81,7 +90,7 @@ def append_job_progress(
 
     return get_support_job(job_id)
 
-def mark_job_running(job_id: str) -> dict | None:
+def mark_job_running(job_id: str, worker_id: str | None = None) -> dict | None:
     job = get_support_job(job_id)
 
     if not job:
@@ -90,13 +99,23 @@ def mark_job_running(job_id: str) -> dict | None:
     if job["status"] in TERMINAL_STATUSES:
         return job
 
-    return update_support_job(
-        job_id,
-        {
-            "status": "running",
-            "started_at": now_iso(),
-        },
-    )
+    started_at = now_iso()
+
+    updates = {
+        "status": "running",
+        "started_at": started_at,
+    }
+
+    if worker_id:
+        updates["worker_id"] = worker_id
+
+    if job.get("created_at"):
+        updates["queue_latency_ms"] = diff_ms(
+            job["created_at"],
+            started_at,
+        )
+
+    return update_support_job(job_id, updates)
 
 def save_job_result(
     job_id: str,
@@ -110,20 +129,28 @@ def save_job_result(
     if job["status"] == "cancelled":
         return job
 
-    return update_support_job(
-        job_id,
-        {
-            "status": "completed",
-            "result": result,
-            "error": None,
-            "finished_at": now_iso(),
-        },
-    )
+    finished_at = now_iso()
+
+    updates = {
+        "status": "completed",
+        "result": result,
+        "error": None,
+        "finished_at": finished_at,
+    }
+
+    if job.get("started_at"):
+        updates["processing_latency_ms"] = diff_ms(
+            job["started_at"],
+            finished_at,
+        )
+
+    return update_support_job(job_id, updates)
 
 
 def fail_job(
     job_id: str,
     error: str,
+    dlq_message_id: str | None = None,
 ) -> dict | None:
     job = get_support_job(job_id)
 
@@ -133,14 +160,24 @@ def fail_job(
     if job["status"] == "cancelled":
         return job
 
-    return update_support_job(
-        job_id,
-        {
-            "status": "failed",
-            "error": error,
-            "finished_at": now_iso(),
-        },
-    )
+    finished_at = now_iso()
+
+    updates = {
+        "status": "failed",
+        "error": error,
+        "finished_at": finished_at,
+    }
+
+    if dlq_message_id:
+        updates["dlq_message_id"] = dlq_message_id
+
+    if job.get("started_at"):
+        updates["processing_latency_ms"] = diff_ms(
+            job["started_at"],
+            finished_at,
+        )
+
+    return update_support_job(job_id, updates)
 
 def increment_attempt(job_id: str) -> dict | None:
     job = get_support_job(job_id)
@@ -166,13 +203,20 @@ def cancel_job(job_id: str) -> dict | None:
     if job["status"] in TERMINAL_STATUSES:
         return job
 
-    return update_support_job(
-        job_id,
-        {
-            "status": "cancelled",
-            "finished_at": now_iso(),
-        },
-    )
+    finished_at = now_iso()
+
+    updates = {
+        "status": "cancelled",
+        "finished_at": finished_at,
+    }
+
+    if job.get("started_at"):
+        updates["processing_latency_ms"] = diff_ms(
+            job["started_at"],
+            finished_at,
+        )
+
+    return update_support_job(job_id, updates)
 
 def should_cancel(job_id: str) -> bool:
     job = get_support_job(job_id)

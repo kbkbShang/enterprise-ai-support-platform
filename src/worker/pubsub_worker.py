@@ -1,5 +1,6 @@
-#print("TOP OF WORKER FILE", flush=True)
 import time
+import os
+import socket
 
 from google.cloud import pubsub_v1
 
@@ -21,6 +22,7 @@ import time
 PROJECT_ID = "gen-lang-client-0399579856"
 SUBSCRIPTION_ID = "support-jobs-sub"
 
+WORKER_ID = os.getenv("WORKER_ID", socket.gethostname())
 
 subscriber = pubsub_v1.SubscriberClient()
 
@@ -99,7 +101,7 @@ def process_job(job_id: str):
     if stop_if_cancelled(job_id):
         return
 
-    job = mark_job_running(job_id)
+    job = mark_job_running(job_id, worker_id=WORKER_ID)
 
     if not job:
         print(f"Job not found when marking running: {job_id}")
@@ -151,12 +153,12 @@ def process_job(job_id: str):
         if stop_if_cancelled(job_id):
             return
 
-        fail_job(job_id, str(e))
-
         dlq_message_id = publish_to_dlq(
             job_id=job_id,
             error=str(e),
         )
+
+        fail_job(job_id, str(e), dlq_message_id=dlq_message_id)
 
         append_job_progress(
             job_id,
