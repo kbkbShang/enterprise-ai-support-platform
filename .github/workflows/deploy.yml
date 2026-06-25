@@ -59,8 +59,11 @@ jobs:
           docker compose -f docker-compose.yml -f docker-compose.ci.yml logs agent-api --tail 100
           exit 1
 
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+          pip install --no-cache-dir -r requirements.txt
 
       - name: Run Smoke Evaluation
         run: python -m src.eval.run_smoke_eval
