@@ -94,6 +94,13 @@ def run_agent_with_retry(job_id: str, query: str, max_attempts: int = 3) -> dict
     raise RuntimeError(last_error or "Agent failed after retries.")
 
 def process_job(job_id: str):
+    import threading
+
+    print(
+        job_id,
+        threading.current_thread().name
+    )
+    
     time.sleep(10)
     job = get_support_job(job_id)
 

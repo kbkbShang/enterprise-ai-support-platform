@@ -1,4 +1,7 @@
 from fastapi import APIRouter, HTTPException
+import json
+import time
+from fastapi.responses import StreamingResponse
 
 from src.jobs.schemas import (
     CreateSupportJobRequest,
@@ -19,7 +22,6 @@ router = APIRouter(
     prefix="/support-jobs",
     tags=["support-jobs"],
 )
-
 
 @router.post("")
 def create_job(request: CreateSupportJobRequest):
@@ -137,3 +139,60 @@ def submit_feedback(
         "saved": True,
         "feedback": feedback,
     }
+
+def format_sse(data: dict) -> str:
+    return f"data: {json.dumps(data)}\n\n"
+
+@router.get("/{job_id}/events")
+def stream_job_events(job_id: str):
+    def event_generator():
+        last_progress_len = -1
+        last_status = None
+
+        while True:
+            job = get_support_job(job_id)
+
+            if not job:
+                yield format_sse(
+                    {
+                        "event": "error",
+                        "message": "Job not found",
+                    }
+                )
+                break
+
+            progress = job.get("progress", [])
+            status = job.get("status")
+
+            if len(progress) != last_progress_len or status != last_status:
+                yield format_sse(
+                    {
+                        "event": "job_update",
+                        "job_id": job_id,
+                        "status": status,
+                        "progress": progress,
+                        "latest_progress": progress[-1] if progress else None,
+                    }
+                )
+
+                last_progress_len = len(progress)
+                last_status = status
+
+            if status in ["completed", "failed", "cancelled"]:
+                yield format_sse(
+                    {
+                        "event": "job_finished",
+                        "job_id": job_id,
+                        "status": status,
+                        "result": job.get("result"),
+                        "error": job.get("error"),
+                    }
+                )
+                break
+
+            time.sleep(1)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+    )
