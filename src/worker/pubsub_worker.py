@@ -18,6 +18,20 @@ from src.jobs.dlq_client import publish_to_dlq
 
 import time
 
+from fastapi import FastAPI
+import threading
+
+app = FastAPI()
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "worker": "running"}
+
+@app.on_event("startup")
+def start_worker():
+    thread = threading.Thread(target=main, daemon=True)
+    thread.start()
+    
 #print("Worker module loaded")
 PROJECT_ID = "gen-lang-client-0399579856"
 SUBSCRIPTION_ID = "support-jobs-sub"
