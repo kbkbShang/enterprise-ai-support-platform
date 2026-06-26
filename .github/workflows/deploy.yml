@@ -148,4 +148,4 @@ jobs:
             --timeout 300 \
             --min-instances 1 \
             --max-instances 3 \
-            --set-env-vars TOOL_SERVER_URL=https://tool-server-105113573922.us-central1.run.app,GOOGLE_CLOUD_PROJECT=gen-lang-client-0399579856
+            --set-env-vars TOOL_SERVER_URL=https://tool-server-105113573922.us-central1.run.app,GOOGLE_CLOUD_PROJECT=gen-lang-client-0399579856,GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
