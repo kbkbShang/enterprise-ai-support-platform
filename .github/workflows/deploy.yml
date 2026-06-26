@@ -130,3 +130,22 @@ jobs:
             --min-instances 0 \
             --max-instances 2 \
             --set-env-vars API_URL=${{ env.AGENT_API_URL }}
+
+      - name: Build and Push Worker
+        run: |
+          docker build -f Dockerfile.worker -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/support-worker:${{ github.sha }} .
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/support-worker:${{ github.sha }}
+
+      - name: Deploy Worker
+        run: |
+          gcloud run deploy support-worker \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/support-worker:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --no-allow-unauthenticated \
+            --memory 2Gi \
+            --cpu 2 \
+            --timeout 300 \
+            --min-instances 1 \
+            --max-instances 3 \
+            --set-env-vars TOOL_SERVER_URL=https://tool-server-105113573922.us-central1.run.app,GOOGLE_CLOUD_PROJECT=gen-lang-client-0399579856
