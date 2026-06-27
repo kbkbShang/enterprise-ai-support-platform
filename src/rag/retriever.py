@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer
 from src.rag.loader import load_kb_documents
 from src.rag.firestore_kb_store import get_kb_chunk
 from src.rag.firestore_kb_store import get_kb_doc as get_kb_doc_firestore
+from src.rag.build_index import build_index
 
 CHROMA_DIR = Path("data/chroma")
 COLLECTION_NAME = "kb_chunks"
@@ -28,8 +29,14 @@ def get_model():
 
 def get_collection():
     client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    return client.get_or_create_collection(name=COLLECTION_NAME)
+    collection = client.get_or_create_collection(name=COLLECTION_NAME)
 
+    if collection.count() == 0:
+        print("Chroma collection is empty. Rebuilding index...", flush=True)
+        build_index()
+        collection = client.get_collection(name=COLLECTION_NAME)
+
+    return collection
 
 def search_kb(query: str, top_k: int = 5) -> list[dict]:
     """
