@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 
 from src.rag.retriever import search_kb as rag_search_kb
-from src.rag.retriever import get_kb_doc as rag_get_kb_doc
-from src.tickets.search import search_tickets as ticket_search
 from src.tickets.draft import create_ticket_draft
+from src.rag.firestore_kb_store import get_kb_doc as get_kb_doc_firestore
+from src.tickets.search import search_tickets as ticket_search
 
 from src.mcp_server.schemas import (
     SearchKBRequest,
@@ -12,7 +12,7 @@ from src.mcp_server.schemas import (
     CreateTicketDraftRequest,
 )
 
-app = FastAPI(title="MCP Gemini Support Agent", description="API for MCP Gemini Support Agent", version="1.0.0")
+app = FastAPI(title="Enterprise AI Support Agent", description="API for MCP Gemini Support Agent", version="1.0.0")
 
 ## This is a mock implementation of the tool server. In a real implementation, this would connect to a knowledge base and ticketing system.
 @app.get("/health")
@@ -20,8 +20,8 @@ def health():
     return {
         "status": "ok",
         "service": "tool_server",
-        "kb_index_exists": False,
-        "tickets_readable": False
+        "storage": "firestore",
+        "retrieval": "chroma",
     }
    
 # Tool endpoint for searching the knowledge base. 
@@ -47,19 +47,28 @@ def search_kb(request: SearchKBRequest):
 # Returns the document content and metadata (e.g. source path).
 @app.post("/tools/get_kb_doc")
 def get_kb_doc(request: GetKBDocRequest):
+    record = get_kb_doc_firestore(request.doc_id)
 
-    doc = rag_get_kb_doc(request.doc_id)
-
-    if doc is None:
+    if not record:
         return {
             "tool": "get_kb_doc",
             "doc_id": request.doc_id,
-            "error": "document not found"
+            "found": False,
+            "document": None,
         }
 
     return {
         "tool": "get_kb_doc",
-        **doc
+        "doc_id": request.doc_id,
+        "found": True,
+        "document": {
+            "doc_id": record["doc_id"],
+            "title": record["title"],
+            "content": record["text"],
+            "metadata": {
+                "source_path": record["source_path"]
+            }
+        }
     }
 
 # Tool endpoint for searching historical support tickets.

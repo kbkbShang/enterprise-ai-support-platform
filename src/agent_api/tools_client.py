@@ -9,6 +9,9 @@ TOOL_SERVER_URL = os.getenv("TOOL_SERVER_URL", "http://localhost:7001")
 
 
 def call_search_kb(query: str, top_k: int = 3) -> dict:
+    print(f"[call_search_kb] TOOL_SERVER_URL={TOOL_SERVER_URL}", flush=True)
+    print(f"[call_search_kb] query={query}, top_k={top_k}", flush=True)
+
     response = requests.post(
         f"{TOOL_SERVER_URL}/tools/search_kb",
         json={
@@ -17,6 +20,9 @@ def call_search_kb(query: str, top_k: int = 3) -> dict:
         },
         timeout=30,
     )
+
+    print(f"[call_search_kb] status={response.status_code}, body={response.text[:500]}", flush=True)
+
     response.raise_for_status()
     return response.json()
 
