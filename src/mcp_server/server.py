@@ -12,16 +12,20 @@ from src.mcp_server.schemas import (
     CreateTicketDraftRequest,
 )
 
+from src.rag.retriever import get_collection
+
 app = FastAPI(title="Enterprise AI Support Agent", description="API for MCP Gemini Support Agent", version="1.0.0")
 
 ## This is a mock implementation of the tool server. In a real implementation, this would connect to a knowledge base and ticketing system.
 @app.get("/health")
 def health():
+    collection = get_collection()
     return {
         "status": "ok",
         "service": "tool_server",
         "storage": "firestore",
         "retrieval": "chroma",
+        "chroma_count": collection.count(),
     }
    
 # Tool endpoint for searching the knowledge base. 
