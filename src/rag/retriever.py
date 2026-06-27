@@ -28,7 +28,7 @@ def get_model():
 
 def get_collection():
     client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    return client.get_collection(name=COLLECTION_NAME)
+    return client.get_or_create_collection(name=COLLECTION_NAME)
 
 
 def search_kb(query: str, top_k: int = 5) -> list[dict]:
