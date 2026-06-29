@@ -4,7 +4,6 @@ import time
 import logging
 
 from dotenv import load_dotenv
-from google import genai
 from google.genai import types
 from pydantic import ValidationError
 
@@ -16,12 +15,11 @@ from src.agent_api.tools_client import (
     call_create_ticket_draft,
 )
 
+from src.llm.gateway import generate_content
 
 load_dotenv()
 
 MODEL_NAME = "gemini-2.5-flash"
-
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 logger = logging.getLogger("agent")
 logging.basicConfig(level=logging.INFO)
@@ -225,36 +223,24 @@ Output rules:
 def generate_content_with_retry(query: str, max_retries: int = 3):
     global _last_retry_count
 
-    last_error = None
     _last_retry_count = 0
 
-    for attempt in range(max_retries):
-        try:
-            return client.models.generate_content(
-                model=MODEL_NAME,
-                contents=query,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_INSTRUCTION,
-                    tools=[
-                        search_kb,
-                        get_kb_doc,
-                        search_tickets,
-                        create_ticket_draft,
-                    ],
-                ),
-            )
+    response = generate_content(
+        contents=query,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_INSTRUCTION,
+            tools=[
+                search_kb,
+                get_kb_doc,
+                search_tickets,
+                create_ticket_draft,
+            ],
+        ),
+        model=MODEL_NAME,
+        max_retries=max_retries,
+    )
 
-        except Exception as e:
-            last_error = e
-
-            if not is_retryable_gemini_error(e):
-                raise e
-
-            _last_retry_count += 1
-            wait_seconds = 5 * (attempt + 1)
-            time.sleep(wait_seconds)
-
-    raise last_error
+    return response
 
 
 def extract_tool_calls(response) -> list[str]:
