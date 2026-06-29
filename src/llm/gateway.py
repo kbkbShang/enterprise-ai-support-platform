@@ -42,6 +42,8 @@ def generate_content(
 
                 latency_ms = int((time.time() - start_time) * 1000)
 
+                usage = getattr(response, "usage_metadata", None)
+
                 logger.info(
                     {
                         "event": "llm_call_success",
@@ -50,9 +52,12 @@ def generate_content(
                         "fallback_used": current_model != selected_model,
                         "attempt": attempt,
                         "latency_ms": latency_ms,
+                        "input_tokens": getattr(usage, "prompt_token_count", None),
+                        "output_tokens": getattr(usage, "candidates_token_count", None),
+                        "total_tokens": getattr(usage, "total_token_count", None),
                     }
-                )
-
+                )       
+                
                 return response
 
             except Exception as e:
