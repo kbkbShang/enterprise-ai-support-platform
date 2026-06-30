@@ -12,19 +12,26 @@ def call_search_kb(query: str, top_k: int = 3) -> dict:
     print(f"[call_search_kb] TOOL_SERVER_URL={TOOL_SERVER_URL}", flush=True)
     print(f"[call_search_kb] query={query}, top_k={top_k}", flush=True)
 
-    response = requests.post(
-        f"{TOOL_SERVER_URL}/tools/search_kb",
-        json={
-            "query": query,
-            "top_k": top_k,
-        },
-        timeout=30,
-    )
+    try:
+        response = requests.post(
+            f"{TOOL_SERVER_URL}/tools/search_kb",
+            json={"query": query, "top_k": top_k},
+            timeout=60,
+        )
 
-    print(f"[call_search_kb] status={response.status_code}, body={response.text[:500]}", flush=True)
+        print(f"[call_search_kb] status={response.status_code}", flush=True)
+        print(f"[call_search_kb] body={response.text[:1000]}", flush=True)
 
-    response.raise_for_status()
-    return response.json()
+        response.raise_for_status()
+        data = response.json()
+
+        return {
+            "results": data.get("results", [])
+        }
+
+    except Exception as e:
+        print(f"[call_search_kb] ERROR={repr(e)}", flush=True)
+        raise
 
 
 def call_get_kb_doc(doc_id: str) -> dict:
