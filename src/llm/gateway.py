@@ -2,6 +2,9 @@ import os
 import time
 import logging
 from typing import Any
+import threading
+import json
+from pydantic import BaseModel, ValidationError
 
 from google import genai
 
@@ -12,7 +15,30 @@ DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 FALLBACK_MODEL = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash-lite")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+MAX_LLM_CALLS_PER_SECOND = int(os.getenv("MAX_LLM_CALLS_PER_SECOND", "2"))
+
+_rate_limit_lock = threading.Lock()
+_last_call_timestamps = []
+
 client = genai.Client(api_key=GEMINI_API_KEY)
+
+def _apply_rate_limit():
+    global _last_call_timestamps
+
+    while True:
+        with _rate_limit_lock:
+            now = time.time()
+
+            _last_call_timestamps = [
+                ts for ts in _last_call_timestamps
+                if now - ts < 1.0
+            ]
+
+            if len(_last_call_timestamps) < MAX_LLM_CALLS_PER_SECOND:
+                _last_call_timestamps.append(now)
+                return
+
+        time.sleep(0.05)
 
 
 def generate_content(
@@ -34,6 +60,8 @@ def generate_content(
             start_time = time.time()
 
             try:
+                _apply_rate_limit()
+
                 response = client.models.generate_content(
                     model=current_model,
                     contents=contents,
@@ -57,7 +85,7 @@ def generate_content(
                         "total_tokens": getattr(usage, "total_token_count", None),
                     }
                 )       
-                
+
                 return response
 
             except Exception as e:
@@ -89,4 +117,80 @@ def generate_content(
 
     raise RuntimeError(
         f"LLM call failed for all models after retries: {last_error}"
+    )
+
+def extract_json_text(text: str) -> str:
+    text = text.strip()
+
+    if "```json" in text:
+        start = text.find("```json") + len("```json")
+        end = text.find("```", start)
+        if end != -1:
+            return text[start:end].strip()
+
+    if "```" in text:
+        start = text.find("```") + len("```")
+        end = text.find("```", start)
+        if end != -1:
+            return text[start:end].strip()
+
+    start = text.find("{")
+    end = text.rfind("}")
+
+    if start != -1 and end != -1 and end > start:
+        return text[start:end + 1].strip()
+
+    return text
+
+def generate_structured_content(
+    contents: Any,
+    schema: type[BaseModel],
+    config: Any = None,
+    model: str | None = None,
+    max_retries: int = 2,
+) -> BaseModel:
+    last_error = None
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = generate_content(
+                contents=contents,
+                config=config,
+                model=model,
+                max_retries=1,
+            )
+
+            text = response.text or ""
+            json_text = extract_json_text(text)
+            parsed = json.loads(json_text)
+
+            validated = schema.model_validate(parsed)
+
+            logger.info(
+                {
+                    "event": "llm_structured_validation_success",
+                    "schema": schema.__name__,
+                    "attempt": attempt,
+                }
+            )
+
+            return validated
+
+        except (json.JSONDecodeError, ValidationError) as e:
+            last_error = e
+
+            logger.warning(
+                {
+                    "event": "llm_structured_validation_failed",
+                    "schema": schema.__name__,
+                    "attempt": attempt,
+                    "error": str(e),
+                }
+            )
+
+            if attempt < max_retries:
+                time.sleep(2 ** attempt)
+
+    raise RuntimeError(
+        f"Structured LLM response validation failed after {max_retries} attempts: {last_error}"
     )
