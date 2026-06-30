@@ -16,6 +16,7 @@ from src.agent_api.tools_client import (
 )
 
 from src.llm.gateway import generate_content
+from src.llm.gateway import generate_structured_content
 
 load_dotenv()
 
@@ -225,8 +226,9 @@ def generate_content_with_retry(query: str, max_retries: int = 3):
 
     _last_retry_count = 0
 
-    response = generate_content(
+    return generate_structured_content(
         contents=query,
+        schema=AgentResponse,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
             tools=[
@@ -239,8 +241,6 @@ def generate_content_with_retry(query: str, max_retries: int = 3):
         model=MODEL_NAME,
         max_retries=max_retries,
     )
-
-    return response
 
 
 def extract_tool_calls(response) -> list[str]:
@@ -317,53 +317,22 @@ def run_gemini_agent(query: str) -> dict:
     tool_calls = []
 
     try:
-        response = generate_content_with_retry(query)
+        validated_response, raw_response = generate_content_with_retry(query)
 
-        tool_calls = extract_tool_calls(response)
-        text = response.text or ""
+        tool_calls = extract_tool_calls(raw_response)
+        
+        # 现在 validated_response 已经是 AgentResponse，不是 Gemini raw response
+        result = validated_response.model_dump()
+        result["tool_calls"] = tool_calls
+        result["metadata"] = build_metadata(
+            start_time=start_time,
+            tool_calls=tool_calls,
+            result=result,
+        )
 
-        if not text.strip():
-            fallback = build_fallback_response(
-                answer="Gemini did not return a text response. It may have made a tool call but did not produce final JSON.",
-                start_time=start_time,
-                tool_calls=tool_calls,
-            )
-            log_agent_response(query, fallback)
-            return fallback
-
-        try:
-            try:
-                parsed_json = json.loads(text.strip())
-            except json.JSONDecodeError:
-                json_text = extract_json_text(text)
-                parsed_json = json.loads(json_text)
-
-            validated_response = AgentResponse.model_validate(parsed_json)
-
-            result = validated_response.model_dump()
-            result["tool_calls"] = tool_calls
-            result["metadata"] = build_metadata(
-                start_time=start_time,
-                tool_calls=tool_calls,
-                result=result,
-            )
-
-            log_agent_response(query, result)
-
-            return result
-
-        except (json.JSONDecodeError, ValidationError) as e:
-            fallback = build_fallback_response(
-                answer=text,
-                start_time=start_time,
-                tool_calls=tool_calls,
-                next_actions=[
-                    f"Response parsing or validation failed: {str(e)}"
-                ],
-            )
-
-            log_agent_response(query, fallback)
-            return fallback
+        log_agent_response(query, result)
+        
+        return result
 
     except Exception as e:
         fallback = build_fallback_response(

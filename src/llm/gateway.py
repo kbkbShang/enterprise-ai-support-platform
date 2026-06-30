@@ -174,7 +174,7 @@ def generate_structured_content(
                 }
             )
 
-            return validated
+            return validated, response
 
         except (json.JSONDecodeError, ValidationError) as e:
             last_error = e
