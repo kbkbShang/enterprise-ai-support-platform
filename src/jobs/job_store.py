@@ -96,7 +96,7 @@ def mark_job_running(job_id: str, worker_id: str | None = None) -> dict | None:
     if not job:
         return None
 
-    if job["status"] in TERMINAL_STATUSES:
+    if job["status"] != "queued":
         return job
 
     started_at = now_iso()

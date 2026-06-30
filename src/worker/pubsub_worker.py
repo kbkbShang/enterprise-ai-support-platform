@@ -131,6 +131,10 @@ def process_job(job_id: str):
         print(f"Job not found when marking running: {job_id}")
         return
 
+    if job.get("status") != "running":
+        print(f"Skipping job {job_id}; current status is {job.get('status')}")
+        return
+
     append_job_progress(
         job_id,
         "Worker started processing the job.",
