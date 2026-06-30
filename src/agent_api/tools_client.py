@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+import time
 
 
 load_dotenv()
@@ -10,28 +11,18 @@ TOOL_SERVER_URL = os.getenv("TOOL_SERVER_URL", "http://localhost:7001")
 
 def call_search_kb(query: str, top_k: int = 3) -> dict:
     print(f"[call_search_kb] TOOL_SERVER_URL={TOOL_SERVER_URL}", flush=True)
-    print(f"[call_search_kb] query={query}, top_k={top_k}", flush=True)
 
-    try:
-        response = requests.post(
-            f"{TOOL_SERVER_URL}/tools/search_kb",
-            json={"query": query, "top_k": top_k},
-            timeout=60,
-        )
+    data = post_with_retry(
+        f"{TOOL_SERVER_URL}/tools/search_kb",
+        {
+            "query": query,
+            "top_k": top_k,
+        },
+    )
 
-        print(f"[call_search_kb] status={response.status_code}", flush=True)
-        print(f"[call_search_kb] body={response.text[:1000]}", flush=True)
-
-        response.raise_for_status()
-        data = response.json()
-
-        return {
-            "results": data.get("results", [])
-        }
-
-    except Exception as e:
-        print(f"[call_search_kb] ERROR={repr(e)}", flush=True)
-        raise
+    return {
+        "results": data.get("results", [])
+    }
 
 
 def call_get_kb_doc(doc_id: str) -> dict:
@@ -89,6 +80,32 @@ def call_create_ticket_draft(
     )
     response.raise_for_status()
     return response.json()
+
+def post_with_retry(url: str, payload: dict, retries: int = 3) -> dict:
+    last_error = None
+
+    for attempt in range(1, retries + 1):
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=60,
+            )
+
+            print(f"[tool_call] status={response.status_code}", flush=True)
+            print(f"[tool_call] body={response.text[:1000]}", flush=True)
+
+            response.raise_for_status()
+            return response.json()
+
+        except Exception as e:
+            last_error = e
+            print(f"[tool_call] attempt={attempt} error={repr(e)}", flush=True)
+
+            if attempt < retries:
+                time.sleep(2 ** attempt)
+
+    raise last_error
 
 if __name__ == "__main__":
     result = call_search_kb("VPN authentication failed", top_k=3)
