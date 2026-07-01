@@ -37,29 +37,20 @@ def call_get_kb_doc(doc_id: str) -> dict:
     return response.json()
 
 
-def call_search_tickets(
-    query: str,
-    #status: str | None = None,
-    #tags: list[str] | None = None,
-    top_k: int = 3,
-) -> dict:
-    
-    response = requests.post(
+def call_search_tickets(query: str, status=None, tags=None, top_k: int = 3) -> dict:
+    data = post_with_retry(
         f"{TOOL_SERVER_URL}/tools/search_tickets",
-        json={
+        {
             "query": query,
             "status": status,
             "tags": tags,
             "top_k": top_k,
         },
-        timeout=60,
     )
-    response.raise_for_status()
-    data = response.json()
-    return{
-        "results": data.get("results", []),
+
+    return {
+        "results": data.get("results", [])
     }
-    #return response.json()
 
 
 def call_create_ticket_draft(
