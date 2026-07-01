@@ -186,6 +186,7 @@ Ticket rules:
 - If create_ticket_draft was not called, ticket_draft.created must be false and draft_id must be null.
 - For unresolved issues where a ticket draft is created, set confidence to 0.0 because no knowledge-base evidence was found.
 - If you suggest creating a ticket draft for an unresolved issue, you must actually call create_ticket_draft to create the draft ticket and return the created draft_id.
+- If the user asks to find similar resolved tickets, historical tickets, previous cases, or past resolutions, call search_tickets. If search_tickets fails or returns no useful results, do not create a ticket draft unless the user explicitly asks to create one. Return a concise message explaining that no similar resolved ticket was found or that ticket search is unavailable.
 
 Out-of-scope and special cases:
 

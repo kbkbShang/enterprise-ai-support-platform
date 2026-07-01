@@ -10,10 +10,10 @@ class GetKBDocRequest(BaseModel):
 
 
 class SearchTicketsRequest(BaseModel):
-    query: str = Field(..., description="User query for searching historical tickets")
-    status: str | None = Field(default=None, description="Optional ticket status filter")
-    tags: list[str] | None = Field(default=None, description="Optional tag filters")
-    top_k: int = Field(default=5, description="Number of tickets to return")
+    query: str
+    status: str | None = None
+    tags: list[str] | None = None
+    top_k: int = 3
 
 
 class CreateTicketDraftRequest(BaseModel):
