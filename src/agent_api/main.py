@@ -8,10 +8,12 @@ import os
 # from src.agent_api.gemini_agent_v2 import run_gemini_agent
 from src.agent_api.gemini_agent_v3 import run_gemini_agent
 from src.agent_api.support_jobs import router as support_jobs_router
+from src.agent_api.health_routes import router as health_router
 
 app = FastAPI(title="Enterprise AI Support Agent", description="API for MCP Gemini Support Agent", version="1.0.0")
 
 app.include_router(support_jobs_router)
+app.include_router(health_router)
 
 ## Configuration
 TOOL_SERVER_URL = os.getenv("TOOL_SERVER_URL", "http://localhost:7001")
