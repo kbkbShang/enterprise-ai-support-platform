@@ -111,6 +111,24 @@ jobs:
             --max-instances 3 \
             --set-env-vars TOOL_SERVER_URL=${{ env.TOOL_SERVER_URL }},GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
 
+      - name: Build and Push API Gateway
+        run: |
+          docker build -f Dockerfile.gateway -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/api-gateway:${{ github.sha }} .
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/api-gateway:${{ github.sha }}
+      
+      - name: Deploy API Gateway
+        run: |
+          gcloud run deploy api-gateway \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/api-gateway:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 1Gi \
+            --cpu 1 \
+            --timeout 300 \
+            --set-env-vars AGENT_API_URL=https://agent-api-105113573922.us-central1.run.app
+
+
       - name: Build and Push UI
         run: |
           docker build -f Dockerfile.ui -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO }}/ui:${{ github.sha }} .
