@@ -90,14 +90,20 @@ def append_job_progress(
 
     return get_support_job(job_id)
 
-def mark_job_running(job_id: str, worker_id: str | None = None) -> dict | None:
-    job = get_support_job(job_id)
+@firestore.transactional
+def _claim_job_transaction(transaction, job_ref, worker_id=None):
+    snapshot = job_ref.get(transaction=transaction)
 
-    if not job:
+    if not snapshot.exists:
         return None
 
-    if job["status"] != "queued":
-        return job
+    job = snapshot.to_dict()
+
+    if job.get("status") != "queued":
+        return {
+            **job,
+            "claimed": False,
+        }
 
     started_at = now_iso()
 
@@ -115,8 +121,25 @@ def mark_job_running(job_id: str, worker_id: str | None = None) -> dict | None:
             started_at,
         )
 
-    return update_support_job(job_id, updates)
+    transaction.update(job_ref, updates)
 
+    return {
+        **job,
+        **updates,
+        "claimed": True,
+    }
+
+
+def mark_job_running(job_id: str, worker_id: str | None = None) -> dict | None:
+    job_ref = db.collection(JOBS_COLLECTION).document(job_id)
+    transaction = db.transaction()
+
+    return _claim_job_transaction(
+        transaction,
+        job_ref,
+        worker_id,
+    )
+    
 def save_job_result(
     job_id: str,
     result: dict,
