@@ -2,12 +2,24 @@ import os
 import requests
 from dotenv import load_dotenv
 import time
+import google.auth.transport.requests
+import google.oauth2.id_token
 
 
 load_dotenv()
 
 TOOL_SERVER_URL = os.getenv("TOOL_SERVER_URL", "http://localhost:7001")
 
+def get_tool_server_auth_headers() -> dict:
+    auth_request = google.auth.transport.requests.Request()
+    token = google.oauth2.id_token.fetch_id_token(
+        auth_request,
+        TOOL_SERVER_URL,
+    )
+
+    return {
+        "Authorization": f"Bearer {token}",
+    }
 
 def call_search_kb(query: str, top_k: int = 3) -> dict:
     print(f"[call_search_kb] TOOL_SERVER_URL={TOOL_SERVER_URL}", flush=True)
@@ -77,9 +89,12 @@ def post_with_retry(url: str, payload: dict, retries: int = 3) -> dict:
 
     for attempt in range(1, retries + 1):
         try:
+            headers = get_tool_server_auth_headers()
+
             response = requests.post(
                 url,
                 json=payload,
+                headers=headers,
                 timeout=120,
             )
 
