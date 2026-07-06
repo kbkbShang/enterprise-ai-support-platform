@@ -1,8 +1,11 @@
+from email.mime import message
 import time
 import os
 import socket
 
 from google.cloud import pubsub_v1
+from google.cloud.pubsub_v1.subscriber.scheduler import ThreadScheduler
+from concurrent.futures import ThreadPoolExecutor
 
 from src.agent_api.gemini_agent_v3 import run_gemini_agent
 from src.jobs.job_store import (
@@ -46,7 +49,6 @@ subscription_path = subscriber.subscription_path(
     PROJECT_ID,
     SUBSCRIPTION_ID,
 )
-
 
 def stop_if_cancelled(job_id: str) -> bool:
     if should_cancel(job_id):
@@ -115,7 +117,6 @@ def process_job(job_id: str):
         threading.current_thread().name
     )
     
-    time.sleep(10)
     job = get_support_job(job_id)
 
     if not job:
@@ -127,12 +128,9 @@ def process_job(job_id: str):
 
     job = mark_job_running(job_id, worker_id=WORKER_ID)
 
-    if not job:
-        print(f"Job not found when marking running: {job_id}")
-        return
-
-    if job.get("status") != "running":
-        print(f"Skipping job {job_id}; current status is {job.get('status')}")
+    if not job or not job.get("claimed"):
+        print(f"Skipping job {job_id}; current status is {job.get('status') if job else 'missing'}")
+        message.ack()
         return
 
     append_job_progress(
@@ -219,13 +217,17 @@ def main():
     print(f"Listening for messages on {subscription_path}")
 
     flow_control = pubsub_v1.types.FlowControl(
-        max_messages=MAX_WORKERS
+        max_messages=1,
+        max_lease_duration=600,
     )
+
+    scheduler = ThreadScheduler(ThreadPoolExecutor(max_workers=1))
 
     streaming_pull_future = subscriber.subscribe(
         subscription_path,
         callback=callback,
         flow_control=flow_control,
+        scheduler=scheduler,
     )
 
     try:
