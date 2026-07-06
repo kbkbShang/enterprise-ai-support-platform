@@ -90,12 +90,13 @@ def post_with_retry(url: str, payload: dict, retries: int = 3) -> dict:
     for attempt in range(1, retries + 1):
         try:
             headers = get_tool_server_auth_headers()
+            headers["Connection"] = "close"
 
             response = requests.post(
                 url,
                 json=payload,
                 headers=headers,
-                timeout=120,
+                timeout=(10, 120),
             )
 
             print(f"[tool_call] status={response.status_code}", flush=True)
