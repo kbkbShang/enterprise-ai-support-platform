@@ -1,4 +1,3 @@
-from email.mime import message
 import time
 import os
 import socket
@@ -130,7 +129,6 @@ def process_job(job_id: str):
 
     if not job or not job.get("claimed"):
         print(f"Skipping job {job_id}; current status is {job.get('status') if job else 'missing'}")
-        message.ack()
         return
 
     append_job_progress(
@@ -194,22 +192,22 @@ def process_job(job_id: str):
         print(f"Job failed and sent to DLQ: {job_id} - {str(e)}")
 
 
-def callback(message):
-    job_id = message.data.decode("utf-8")
+def callback(pubsub_message):
+    job_id = pubsub_message.data.decode("utf-8")
 
     print(f"Received job: {job_id}")
 
     try:
         process_job(job_id)
 
-        message.ack()
+        pubsub_message.ack()
 
         print(f"Acked job: {job_id}")
 
     except Exception as e:
         print(f"Worker error for job {job_id}: {str(e)}")
 
-        message.nack()
+        pubsub_message.nack()
 
 def main():
     #print("Entering main()")
