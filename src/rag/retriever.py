@@ -32,9 +32,9 @@ def get_collection():
     collection = client.get_or_create_collection(name=COLLECTION_NAME)
 
     if collection.count() == 0:
-        print("Chroma collection is empty. Rebuilding index...", flush=True)
-        build_index()
-        collection = client.get_collection(name=COLLECTION_NAME)
+        raise RuntimeError(
+            "Chroma collection is empty. Build the index during Docker build."
+        )
 
     return collection
 
