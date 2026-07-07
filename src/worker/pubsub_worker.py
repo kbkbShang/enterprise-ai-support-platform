@@ -215,11 +215,11 @@ def main():
     print(f"Listening for messages on {subscription_path}")
 
     flow_control = pubsub_v1.types.FlowControl(
-        max_messages=2,
+        max_messages=4,
         max_lease_duration=600,
     )
 
-    scheduler = ThreadScheduler(ThreadPoolExecutor(max_workers=2))
+    scheduler = ThreadScheduler(ThreadPoolExecutor(max_workers=4))
 
     streaming_pull_future = subscriber.subscribe(
         subscription_path,

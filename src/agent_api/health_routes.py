@@ -52,7 +52,8 @@ def check_tool_server() -> dict:
     try:
         response = requests.get(
             f"{TOOL_SERVER_URL}/health",
-            timeout=5,
+            timeout=15,
+            headers={"Connection": "close",},
         )
 
         return {

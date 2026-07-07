@@ -38,31 +38,12 @@ def call_search_kb(query: str, top_k: int = 3) -> dict:
 
 
 def call_get_kb_doc(doc_id: str) -> dict:
-    response = requests.post(
+    return post_with_retry(
         f"{TOOL_SERVER_URL}/tools/get_kb_doc",
-        json={
+        {
             "doc_id": doc_id,
         },
-        timeout=120,
     )
-    response.raise_for_status()
-    return response.json()
-
-
-def call_search_tickets(query: str, status=None, tags=None, top_k: int = 3) -> dict:
-    data = post_with_retry(
-        f"{TOOL_SERVER_URL}/tools/search_tickets",
-        {
-            "query": query,
-            "status": status,
-            "tags": tags,
-            "top_k": top_k,
-        },
-    )
-
-    return {
-        "results": data.get("results", [])
-    }
 
 
 def call_create_ticket_draft(
@@ -71,7 +52,24 @@ def call_create_ticket_draft(
     priority: str = "medium",
     tags: list[str] | None = None,
 ) -> dict:
-    response = requests.post(
+    return post_with_retry(
+        f"{TOOL_SERVER_URL}/tools/create_ticket_draft",
+        {
+            "title": title,
+            "description": description,
+            "priority": priority,
+            "tags": tags or [],
+        },
+    )
+
+
+def call_create_ticket_draft(
+    title: str,
+    description: str,
+    priority: str = "medium",
+    tags: list[str] | None = None,
+) -> dict:
+    response = session.post(
         f"{TOOL_SERVER_URL}/tools/create_ticket_draft",
         json={
             "title": title,
@@ -79,7 +77,7 @@ def call_create_ticket_draft(
             "priority": priority,
             "tags": tags or [],
         },
-        timeout=60,
+        timeout=(10, 60),
     )
     response.raise_for_status()
     return response.json()
