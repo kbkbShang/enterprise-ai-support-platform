@@ -233,6 +233,7 @@ def generate_content_with_retry(query: str, max_retries: int = 3):
         schema=AgentResponse,
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
+            temperature=0,
             tools=[
                 search_kb,
                 get_kb_doc,
