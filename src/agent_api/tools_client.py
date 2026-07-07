@@ -62,26 +62,6 @@ def call_create_ticket_draft(
         },
     )
 
-
-def call_create_ticket_draft(
-    title: str,
-    description: str,
-    priority: str = "medium",
-    tags: list[str] | None = None,
-) -> dict:
-    response = session.post(
-        f"{TOOL_SERVER_URL}/tools/create_ticket_draft",
-        json={
-            "title": title,
-            "description": description,
-            "priority": priority,
-            "tags": tags or [],
-        },
-        timeout=(10, 60),
-    )
-    response.raise_for_status()
-    return response.json()
-
 def post_with_retry(url: str, payload: dict, retries: int = 3) -> dict:
     last_error = None
 
