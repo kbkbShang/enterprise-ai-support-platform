@@ -46,6 +46,22 @@ def call_get_kb_doc(doc_id: str) -> dict:
     )
 
 
+def call_search_tickets(query: str, status=None, tags=None, top_k: int = 3) -> dict:
+    data = post_with_retry(
+        f"{TOOL_SERVER_URL}/tools/search_tickets",
+        {
+            "query": query,
+            "status": status,
+            "tags": tags,
+            "top_k": top_k,
+        },
+    )
+
+    return {
+        "results": data.get("results", [])
+    }
+
+
 def call_create_ticket_draft(
     title: str,
     description: str,
