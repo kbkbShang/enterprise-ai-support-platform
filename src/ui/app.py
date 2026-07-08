@@ -1,5 +1,4 @@
 import os
-import time
 import requests
 import streamlit as st
 
@@ -18,6 +17,17 @@ st.set_page_config(
 
 st.title("🤖 Enterprise AI Support Agent")
 
+
+if "last_job_id" not in st.session_state:
+    st.session_state.last_job_id = None
+
+if "last_events" not in st.session_state:
+    st.session_state.last_events = []
+
+if "last_result" not in st.session_state:
+    st.session_state.last_result = None
+
+
 with st.sidebar:
     st.header("System Info")
     st.write("Gemini 2.5 Flash")
@@ -26,7 +36,39 @@ with st.sidebar:
     st.write("LLM Gateway + SSE")
     st.caption(f"API: {API_BASE_URL}")
 
+
 tab_chat, tab_dashboard = st.tabs(["💬 Chat", "📊 Dashboard"])
+
+
+def display_result(result: dict):
+    st.subheader("Answer")
+    st.write(result.get("answer", ""))
+
+    st.subheader("Confidence")
+    st.write(result.get("confidence", 0))
+
+    st.subheader("Tool Calls")
+    st.json(result.get("tool_calls", []))
+
+    st.subheader("Ticket Draft")
+    st.json(result.get("ticket_draft", {}))
+
+    st.subheader("Citations")
+    citations = result.get("citations", [])
+
+    if not citations:
+        st.write("No citations returned.")
+    else:
+        for citation in citations:
+            st.info(
+                f"""
+                Document: {citation.get('doc_id')}
+
+                Chunk: {citation.get('chunk_id')}
+
+                {citation.get('quote')}
+                """
+            )
 
 
 with tab_chat:
@@ -43,6 +85,10 @@ with tab_chat:
             st.warning("Please enter a support question.")
             st.stop()
 
+        st.session_state.last_job_id = None
+        st.session_state.last_events = []
+        st.session_state.last_result = None
+
         payload = {
             "query": query,
             "session_id": session_id.strip() or None,
@@ -58,13 +104,12 @@ with tab_chat:
             job = response.json()
 
         job_id = job["job_id"]
+        st.session_state.last_job_id = job_id
 
         st.info(f"Job created: {job_id}")
 
         st.subheader("Progress Events")
         progress_box = st.empty()
-
-        events = []
 
         try:
             with requests.get(
@@ -82,9 +127,11 @@ with tab_chat:
                         continue
 
                     event_text = line.replace("data: ", "", 1)
-                    events.append(event_text)
 
-                    progress_box.code("\n".join(events[-15:]))
+                    st.session_state.last_events.append(event_text)
+                    progress_box.code(
+                        "\n".join(st.session_state.last_events[-15:])
+                    )
 
                     if '"event": "job_finished"' in event_text:
                         break
@@ -95,7 +142,7 @@ with tab_chat:
         with st.spinner("Loading final result..."):
             response = requests.get(
                 f"{API_BASE_URL}/support-jobs/{job_id}/result",
-                timeout=30,
+                timeout=60,
             )
             response.raise_for_status()
             data = response.json()
@@ -105,35 +152,17 @@ with tab_chat:
             st.stop()
 
         result = data.get("result") or {}
+        st.session_state.last_result = result
 
-        st.subheader("Answer")
-        st.write(result.get("answer", ""))
+    if st.session_state.last_job_id:
+        st.caption(f"Last job: {st.session_state.last_job_id}")
 
-        st.subheader("Confidence")
-        st.write(result.get("confidence", 0))
+    if st.session_state.last_events:
+        st.subheader("Last Progress Events")
+        st.code("\n".join(st.session_state.last_events[-15:]))
 
-        st.subheader("Tool Calls")
-        st.json(result.get("tool_calls", []))
-
-        st.subheader("Ticket Draft")
-        st.json(result.get("ticket_draft", {}))
-
-        st.subheader("Citations")
-        citations = result.get("citations", [])
-
-        if not citations:
-            st.write("No citations returned.")
-        else:
-            for citation in citations:
-                st.info(
-                    f"""
-                    Document: {citation.get('doc_id')}
-
-                    Chunk: {citation.get('chunk_id')}
-
-                    {citation.get('quote')}
-                    """
-                )
+    if st.session_state.last_result:
+        display_result(st.session_state.last_result)
 
 
 with tab_dashboard:
@@ -156,9 +185,20 @@ with tab_dashboard:
 
         checks = ready.get("checks", {})
 
-        col1.metric("Firestore", checks.get("firestore", {}).get("status", "unknown"))
-        col2.metric("Tool Server", checks.get("tool_server", {}).get("status", "unknown"))
-        col3.metric("Pub/Sub", checks.get("pubsub", {}).get("status", "unknown"))
+        col1.metric(
+            "Firestore",
+            checks.get("firestore", {}).get("status", "unknown"),
+        )
+
+        col2.metric(
+            "Tool Server",
+            checks.get("tool_server", {}).get("status", "unknown"),
+        )
+
+        col3.metric(
+            "Pub/Sub",
+            checks.get("pubsub", {}).get("status", "unknown"),
+        )
 
         st.subheader("Jobs")
 
@@ -198,8 +238,16 @@ with tab_dashboard:
 
         col1, col2, col3 = st.columns(3)
 
-        col1.metric("Tickets Created", agent.get("ticket_created_count", 0))
-        col2.metric("Total Citations", agent.get("total_citations", 0))
+        col1.metric(
+            "Tickets Created",
+            agent.get("ticket_created_count", 0),
+        )
+
+        col2.metric(
+            "Total Citations",
+            agent.get("total_citations", 0),
+        )
+
         col3.metric(
             "Avg Citations / Job",
             agent.get("avg_citations_per_completed_job", 0),
