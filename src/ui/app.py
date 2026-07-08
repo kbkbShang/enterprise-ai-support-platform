@@ -1,9 +1,14 @@
 import os
+import time
 import requests
 import streamlit as st
 
-API_URL = os.getenv("API_URL", "http://localhost:8000/chat")
-API_BASE_URL = API_URL.replace("/chat", "")
+
+API_BASE_URL = os.getenv(
+    "API_URL",
+    "http://localhost:8000",
+).replace("/chat", "").rstrip("/")
+
 
 st.set_page_config(
     page_title="Enterprise AI Support Agent",
@@ -19,44 +24,99 @@ with st.sidebar:
     st.write("FastAPI + Pub/Sub + Worker")
     st.write("Firestore + ChromaDB")
     st.write("LLM Gateway + SSE")
+    st.caption(f"API: {API_BASE_URL}")
 
 tab_chat, tab_dashboard = st.tabs(["💬 Chat", "📊 Dashboard"])
+
 
 with tab_chat:
     query = st.text_input("Enter your support question")
 
-    if st.button("Submit"):
-        response = requests.post(
-            API_URL,
-            json={
-                "query": query,
-                "session_id": "streamlit-demo",
-            },
-            timeout=120,
-        )
+    session_id = st.text_input(
+        "Session ID (optional)",
+        value="",
+        placeholder="Leave empty to auto-generate",
+    )
 
-        result = response.json()
+    if st.button("Submit"):
+        if not query.strip():
+            st.warning("Please enter a support question.")
+            st.stop()
+
+        payload = {
+            "query": query,
+            "session_id": session_id.strip() or None,
+        }
+
+        with st.spinner("Creating support job..."):
+            response = requests.post(
+                f"{API_BASE_URL}/support-jobs",
+                json=payload,
+                timeout=30,
+            )
+            response.raise_for_status()
+            job = response.json()
+
+        job_id = job["job_id"]
+
+        st.info(f"Job created: {job_id}")
+
+        result = None
+
+        with st.spinner("Agent is processing your request..."):
+            for _ in range(120):
+                response = requests.get(
+                    f"{API_BASE_URL}/support-jobs/{job_id}/result",
+                    timeout=30,
+                )
+                response.raise_for_status()
+
+                data = response.json()
+                status = data.get("status")
+
+                if status == "completed":
+                    result = data.get("result")
+                    break
+
+                if status in ["failed", "cancelled"]:
+                    st.error(data.get("error") or f"Job {status}.")
+                    st.stop()
+
+                time.sleep(2)
+
+        if not result:
+            st.error("Timed out waiting for job result.")
+            st.stop()
 
         st.subheader("Answer")
-        st.write(result["answer"])
+        st.write(result.get("answer", ""))
 
         st.subheader("Confidence")
-        st.write(result["confidence"])
+        st.write(result.get("confidence", 0))
 
         st.subheader("Tool Calls")
         st.json(result.get("tool_calls", []))
 
+        st.subheader("Ticket Draft")
+        st.json(result.get("ticket_draft", {}))
+
         st.subheader("Citations")
-        for citation in result.get("citations", []):
-            st.info(
-                f"""
-                Document: {citation['doc_id']}
+        citations = result.get("citations", [])
 
-                Chunk: {citation['chunk_id']}
+        if not citations:
+            st.write("No citations returned.")
+        else:
+            for citation in citations:
+                st.info(
+                    f"""
+                    Document: {citation.get('doc_id')}
 
-                {citation['quote']}
-                """
-            )
+                    Chunk: {citation.get('chunk_id')}
+
+                    {citation.get('quote')}
+                    """
+                )
+
 
 with tab_dashboard:
     st.header("System Dashboard")
@@ -78,20 +138,9 @@ with tab_dashboard:
 
         checks = ready.get("checks", {})
 
-        col1.metric(
-            "Firestore",
-            checks.get("firestore", {}).get("status", "unknown"),
-        )
-
-        col2.metric(
-            "Tool Server",
-            checks.get("tool_server", {}).get("status", "unknown"),
-        )
-
-        col3.metric(
-            "Pub/Sub",
-            checks.get("pubsub", {}).get("status", "unknown"),
-        )
+        col1.metric("Firestore", checks.get("firestore", {}).get("status", "unknown"))
+        col2.metric("Tool Server", checks.get("tool_server", {}).get("status", "unknown"))
+        col3.metric("Pub/Sub", checks.get("pubsub", {}).get("status", "unknown"))
 
         st.subheader("Jobs")
 
@@ -131,16 +180,8 @@ with tab_dashboard:
 
         col1, col2, col3 = st.columns(3)
 
-        col1.metric(
-            "Tickets Created",
-            agent.get("ticket_created_count", 0),
-        )
-
-        col2.metric(
-            "Total Citations",
-            agent.get("total_citations", 0),
-        )
-
+        col1.metric("Tickets Created", agent.get("ticket_created_count", 0))
+        col2.metric("Total Citations", agent.get("total_citations", 0))
         col3.metric(
             "Avg Citations / Job",
             agent.get("avg_citations_per_completed_job", 0),
