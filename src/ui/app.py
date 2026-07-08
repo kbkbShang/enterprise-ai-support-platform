@@ -61,32 +61,50 @@ with tab_chat:
 
         st.info(f"Job created: {job_id}")
 
-        result = None
+        st.subheader("Progress Events")
+        progress_box = st.empty()
 
-        with st.spinner("Agent is processing your request..."):
-            for _ in range(120):
-                response = requests.get(
-                    f"{API_BASE_URL}/support-jobs/{job_id}/result",
-                    timeout=30,
-                )
+        events = []
+
+        try:
+            with requests.get(
+                f"{API_BASE_URL}/support-jobs/{job_id}/events",
+                stream=True,
+                timeout=(10, 600),
+            ) as response:
                 response.raise_for_status()
 
-                data = response.json()
-                status = data.get("status")
+                for line in response.iter_lines(decode_unicode=True):
+                    if not line:
+                        continue
 
-                if status == "completed":
-                    result = data.get("result")
-                    break
+                    if not line.startswith("data: "):
+                        continue
 
-                if status in ["failed", "cancelled"]:
-                    st.error(data.get("error") or f"Job {status}.")
-                    st.stop()
+                    event_text = line.replace("data: ", "", 1)
+                    events.append(event_text)
 
-                time.sleep(2)
+                    progress_box.code("\n".join(events[-15:]))
 
-        if not result:
-            st.error("Timed out waiting for job result.")
+                    if '"event": "job_finished"' in event_text:
+                        break
+
+        except Exception as e:
+            st.warning(f"Event stream ended or failed: {e}")
+
+        with st.spinner("Loading final result..."):
+            response = requests.get(
+                f"{API_BASE_URL}/support-jobs/{job_id}/result",
+                timeout=30,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        if data.get("status") != "completed":
+            st.error(data.get("error") or f"Job status: {data.get('status')}")
             st.stop()
+
+        result = data.get("result") or {}
 
         st.subheader("Answer")
         st.write(result.get("answer", ""))
