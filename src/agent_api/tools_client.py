@@ -10,6 +10,18 @@ load_dotenv()
 
 TOOL_SERVER_URL = os.getenv("TOOL_SERVER_URL", "http://localhost:7001")
 
+def warmup_tool_server():
+    try:
+        response = requests.get(
+            f"{TOOL_SERVER_URL}/health",
+            headers={"Connection": "close"},
+            timeout=(10, 60),
+        )
+        print(f"[tool_warmup] status={response.status_code}", flush=True)
+    except Exception as e:
+        print(f"[tool_warmup] error={repr(e)}", flush=True)
+
+
 def get_tool_server_auth_headers() -> dict:
     auth_request = google.auth.transport.requests.Request()
     token = google.oauth2.id_token.fetch_id_token(
@@ -24,6 +36,9 @@ def get_tool_server_auth_headers() -> dict:
 def call_search_kb(query: str, top_k: int = 3) -> dict:
     print(f"[call_search_kb] TOOL_SERVER_URL={TOOL_SERVER_URL}", flush=True)
 
+    warmup_tool_server()
+    time.sleep(2)
+
     data = post_with_retry(
         f"{TOOL_SERVER_URL}/tools/search_kb",
         {
@@ -35,7 +50,6 @@ def call_search_kb(query: str, top_k: int = 3) -> dict:
     return {
         "results": data.get("results", [])
     }
-
 
 def call_get_kb_doc(doc_id: str) -> dict:
     return post_with_retry(
