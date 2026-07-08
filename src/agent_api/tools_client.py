@@ -90,7 +90,7 @@ def post_with_retry(url: str, payload: dict, retries: int = 3) -> dict:
                 url,
                 json=payload,
                 headers=headers,
-                timeout=(10, 120),
+                timeout=(30, 180),
             )
 
             print(f"[tool_call] status={response.status_code}", flush=True)
@@ -104,7 +104,7 @@ def post_with_retry(url: str, payload: dict, retries: int = 3) -> dict:
             print(f"[tool_call] attempt={attempt} error={repr(e)}", flush=True)
 
             if attempt < retries:
-                time.sleep(2 ** attempt)
+                time.sleep(5 * attempt)
 
     raise last_error
 
