@@ -1,355 +1,247 @@
-# MCP Gemini Support Agent
+# Enterprise AI Support Platform
 
-## Demo
+> A production-style AI support platform built with FastAPI, Google Cloud Run, Pub/Sub, Firestore, ChromaDB, and Gemini 2.5 Flash.
 
-### Enterprise Support Agent UI
-
-![Agent UI](docs/agent_ui.png)
-
-The Streamlit UI allows users to submit support requests, view citation-grounded responses, inspect retrieved evidence, and review tool invocation details.
-
-### Live Cloud Deployment
-
-The application is deployed on Google Cloud Run as a multi-service architecture consisting of:
-
-- Streamlit UI
-- FastAPI Agent API
-- Tool Server
-
-Cloud Run provides automatic HTTPS endpoints, autoscaling, monitoring, and serverless deployment capabilities.
+[![Python](https://img.shields.io/badge/Python-3.11-blue)]()
+[![FastAPI](https://img.shields.io/badge/FastAPI-REST-green)]()
+[![Cloud Run](https://img.shields.io/badge/Google-Cloud%20Run-blue)]()
+[![Pub/Sub](https://img.shields.io/badge/Google-Pub/Sub-orange)]()
+[![Firestore](https://img.shields.io/badge/Firestore-NoSQL-yellow)]()
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-VectorDB-purple)]()
+[![Docker](https://img.shields.io/badge/Docker-Container-blue)]()
 
 ---
 
 ## Overview
 
-Enterprise IT support teams handle large volumes of repetitive requests related to VPN access, authentication failures, software installation, permissions, and account management. Relevant information is often distributed across knowledge bases, internal documentation, and historical support tickets, making issue resolution time-consuming and inconsistent.
+Enterprise AI Support Platform is a cloud-native AI backend system designed to automate enterprise IT support workflows.
 
-This project implements an Enterprise AI Support Agent powered by Gemini Function Calling and FastAPI. The agent retrieves enterprise knowledge, searches historical support cases, generates citation-grounded responses, and automatically creates ticket drafts when available evidence is insufficient.
+Unlike a traditional RAG chatbot, the platform separates request handling, agent execution, tool invocation, and retrieval into independent services connected through asynchronous job processing. This architecture improves scalability, reliability, and fault tolerance while enabling grounded responses with citations, enterprise knowledge retrieval, historical ticket search, and automated ticket drafting.
 
-The system demonstrates how LLM agents can be integrated into enterprise support workflows while improving reliability, traceability, and operational efficiency.
-
----
-
-## Technical Highlights
-
-- Built an enterprise AI support agent using Gemini Function Calling and FastAPI
-- Implemented knowledge-base retrieval, historical ticket search, and ticket draft generation workflows
-- Developed citation-grounded response generation with evidence retrieval
-- Designed structured JSON response schemas using Pydantic validation
-- Implemented structured logging for observability, including latency, tool usage, citation counts, and retry metrics
-- Developed an automated evaluation framework for tool routing, citation validation, and ticket workflow verification
-- Containerized the application using Docker and Docker Compose
-- Deployed a multi-service architecture on Google Cloud Run with autoscaling support
+The entire platform is containerized with Docker, deployed on Google Cloud Run, and integrated with GitHub Actions for automated CI/CD.
 
 ---
 
-## Key Features
+# Features
 
-### Knowledge Base Retrieval
+## AI Capabilities
 
-- Searches enterprise support articles
-- Retrieves relevant troubleshooting steps
-- Returns citation-backed responses
-
-### Full Document Retrieval
-
-- Retrieves complete knowledge-base documents when additional context is required
-- Supports policy and guide summarization
-
-### Historical Ticket Search
-
-- Finds similar resolved support cases
-- Surfaces previous resolutions and troubleshooting paths
-
-### Ticket Draft Creation
-
-- Automatically creates support ticket drafts when evidence is insufficient
-- Prevents unsupported or hallucinated recommendations
-
-### Reliability, Observability & Validation
-
-- Gemini Function Calling
-- Pydantic response validation
-- Automatic retry handling for API failures
-- Structured JSON outputs
-- Structured logging for monitoring and debugging
-- Latency and tool-usage tracking
-
-### Evaluation Framework
-
-- Automated evaluation suite
-- Tool-routing validation
-- Citation validation
-- Ticket workflow validation
+- Grounded Retrieval-Augmented Generation (RAG)
+- ChromaDB vector search
+- Citation-aware responses
+- Historical ticket retrieval
+- Automatic ticket draft generation
+- Structured LLM outputs
+- Confidence scoring
 
 ---
 
-## System Architecture
+## Backend Architecture
+
+- FastAPI REST APIs
+- API Gateway
+- Custom LLM Gateway
+- Asynchronous job execution
+- Google Cloud Pub/Sub
+- Background Worker Service
+- Service decoupling
+- Firestore persistence
+- Retry with exponential backoff
+- Dead Letter Queue (DLQ)
+
+---
+
+## Cloud & DevOps
+
+- Dockerized microservices
+- Google Cloud Run deployment
+- GitHub Actions CI/CD
+- Smoke evaluation pipeline
+- Health & readiness checks
+- Metrics dashboard
+- Cloud Logging
+
+---
+
+# System Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
+  Client["Client / Streamlit UI"]
 
-    User([User])
+  subgraph Gateway["FastAPI API Gateway"]
+    GatewayRoutes["Proxy Routes<br/>/support-jobs, /events, /result, /feedback, /cancel, /health, /ready"]
+  end
 
-    Agent[FastAPI Agent API]
+  subgraph AgentAPI["Agent API Service"]
+    CreateJob["POST /support-jobs<br/>Create agent job"]
+    JobStatus["GET /support-jobs/{job_id}<br/>Check job status"]
+    JobEvents["GET /support-jobs/{job_id}/events<br/>Stream progress with SSE"]
+    JobResult["GET /support-jobs/{job_id}/result<br/>Get final answer"]
+    Feedback["POST /support-jobs/{job_id}/feedback<br/>Submit user feedback"]
+    CancelJob["POST /support-jobs/{job_id}/cancel<br/>Cancel queued/running job"]
+    Health["GET /health, GET /ready<br/>Health and readiness checks"]
+  end
 
-    Gemini[Gemini 2.5 Flash]
+  subgraph AsyncLayer["Async Processing Layer"]
+    RequestTopic["Google Cloud Pub/Sub<br/>support-jobs topic"]
+    WorkerPool["Cloud Run Worker Service"]
+  end
 
-    subgraph Tools
-        KB[search_kb]
-        DOC[get_kb_doc]
-        TICKET[search_tickets]
-        DRAFT[create_ticket_draft]
-    end
+  subgraph AgentSystem["Agent Execution Services"]
+    LLMGateway["Custom LLM Gateway<br/>Gemini calls, retries, fallback, structured output"]
+    ToolServer["FastAPI Tool Server<br/>KB search, ticket search, ticket draft"]
+    RAG["ChromaDB Retrieval<br/>vector search + citations"]
+    Tickets["Ticket Store / Tools<br/>historical tickets + draft creation"]
+  end
 
-    Data[(Knowledge Base & Ticket Store)]
+  subgraph StateObs["State, Recovery, and Observability"]
+    JobState["Firestore Job Store<br/>status, result, metadata, feedback"]
+    ProgressEvents["Progress Events<br/>SSE progress + job lifecycle"]
+    Metrics["Metrics API / Dashboard<br/>latency, success rate, citations, ticket count"]
+    Logging["Cloud Logging<br/>worker logs, tool calls, LLM latency"]
+    DLQ["Dead Letter Queue<br/>failed job recovery"]
+  end
 
-    User --> Agent
+  Client --> GatewayRoutes
+  GatewayRoutes --> CreateJob
+  GatewayRoutes --> JobStatus
+  GatewayRoutes --> JobEvents
+  GatewayRoutes --> JobResult
+  GatewayRoutes --> Feedback
+  GatewayRoutes --> CancelJob
+  GatewayRoutes --> Health
 
-    Agent --> Gemini
+  CreateJob --> JobState
+  CreateJob --> RequestTopic
 
-    Gemini <--> Tools
+  RequestTopic --> WorkerPool
+  WorkerPool --> LLMGateway
+  WorkerPool --> ToolServer
 
-    KB --> Data
-    DOC --> Data
-    TICKET --> Data
+  ToolServer --> RAG
+  ToolServer --> Tickets
 
-    Gemini --> Agent
+  WorkerPool --> JobState
+  WorkerPool --> ProgressEvents
+  WorkerPool --> Metrics
+  WorkerPool --> Logging
+  WorkerPool --> DLQ
 
-    Agent --> User
+  JobStatus --> JobState
+  JobEvents --> ProgressEvents
+  JobResult --> JobState
+  Feedback --> JobState
+  CancelJob --> JobState
+  Health --> Metrics
 ```
 
-The agent uses Gemini Function Calling to interact with a tool server that provides knowledge-base retrieval, historical ticket search, full document retrieval, and ticket draft creation capabilities.
+---
+
+# Technology Stack
+
+| Layer | Technology |
+|---------|------------|
+| Frontend | Streamlit |
+| API Framework | FastAPI |
+| API Gateway | FastAPI |
+| LLM | Gemini 2.5 Flash |
+| Message Queue | Google Cloud Pub/Sub |
+| Background Processing | Cloud Run Worker |
+| Vector Database | ChromaDB |
+| Database | Firestore |
+| Deployment | Google Cloud Run |
+| CI/CD | GitHub Actions |
+| Containers | Docker |
 
 ---
 
-## Agent Workflow
+# Project Structure
 
-1. User submits a support request
-
-2. Gemini determines which tool(s) to invoke
-
-3. `search_kb()` retrieves relevant support evidence
-
-4. `get_kb_doc()` is called when broader document context is needed
-
-5. `search_tickets()` retrieves similar historical cases
-
-6. `create_ticket_draft()` is used when evidence is insufficient
-
-7. Agent returns:
-   - Grounded answer
-   - Citations
-   - Confidence score
-   - Next actions
+```
+src
+├── agent_api
+├── api_gateway
+├── jobs
+├── llm_gateway
+├── mcp_server
+├── rag
+├── tickets
+├── ui
+├── metrics
+└── eval
+```
 
 ---
 
-## Technology Stack
+# Deployment Pipeline
 
-### Frontend
-
-- Streamlit
-
-### Backend
-
-- Python
-- FastAPI
-- Uvicorn
-
-### LLM
-
-- Gemini 2.5 Flash
-- Function Calling
-
-### Validation
-
-- Pydantic
-
-### Deployment
-
-- Docker
-- Docker Compose
-- Google Cloud Run
-
-### Monitoring
-
-- Google Cloud Logging
-- Structured JSON Logs
-
-### Testing
-
-- Automated Evaluation Framework
-
-### Data Layer
-
-- ChromaDB
-- JSON Knowledge Base
-- Historical Ticket Store
+```text
+GitHub Push
+      │
+      ▼
+GitHub Actions
+      │
+      ▼
+Docker Build
+      │
+      ▼
+Artifact Registry
+      │
+      ▼
+Cloud Run
+      │
+      ├── API Gateway
+      ├── Agent API
+      ├── Worker
+      ├── Tool Server
+      └── Streamlit UI
+```
 
 ---
 
-## Cloud Deployment
+# Evaluation
 
-The system is deployed on Google Cloud Run using a containerized multi-service architecture.
+The platform includes an automated smoke evaluation pipeline executed during CI/CD.
 
-### Services
+The evaluation validates:
 
-| Service | Description |
-|----------|----------|
-| Streamlit UI | User-facing support interface |
-| Agent API | Gemini-powered orchestration layer |
-| Tool Server | Retrieval and ticketing tools |
-
-### Deployment Features
-
-- Docker-based deployment
-- Google Cloud Run serverless hosting
-- Automatic HTTPS endpoints
-- Autoscaling support
-- Cloud Logging integration
-- Service isolation across UI, API, and Tool layers
-
-### Autoscaling Configuration
-
-| Service | Min Instances | Max Instances |
-|----------|----------|----------|
-| UI | 0 | 2 |
-| Agent API | 0 | 3 |
-| Tool Server | 0 | 3 |
-
-Cloud Run automatically scales services based on incoming traffic while scaling to zero during idle periods to reduce cost.
-
----
-
-## Evaluation
-
-The project includes an automated evaluation framework for measuring agent behavior and workflow correctness.
-
-### Evaluation Coverage
-
-- Knowledge-base retrieval
-- Historical ticket retrieval
-- Ticket draft creation
+- Correct tool routing
 - Citation generation
-- Tool routing behavior
-- API reliability
-
-### Example Metrics
-
-| Metric | Result |
-|----------|----------|
-| Total Test Cases | 20 |
-| Logic Pass Rate | 100% |
-| Tool Validation | Supported |
-| Citation Validation | Supported |
-| Retry Handling | Supported |
-| Structured Output Validation | Supported |
-
-**Note:** Occasional failures may occur due to external Gemini API rate limits or temporary service availability issues. Automatic retry logic is implemented to improve reliability.
+- Ticket creation behavior
+- Structured LLM outputs
+- End-to-end workflow correctness
 
 ---
 
-## Observability
+# Screenshots
 
-The system emits structured JSON logs for monitoring and debugging.
+## Chat Interface
 
-Captured metrics include:
-
-- Query latency
-- Tool invocations
-- Citation count
-- Retry count
-- Ticket creation events
-- Confidence score
-
-Example log:
-
-```json
-{
-  "event": "agent_response",
-  "query": "VPN authentication failed",
-  "tool_calls": ["search_kb"],
-  "citation_count": 2,
-  "ticket_created": false,
-  "latency_ms": 1874,
-  "retry_count": 0,
-  "confidence": 0.85,
-  "model": "gemini-2.5-flash"
-}
-```
-
-When deployed to Cloud Run, logs are automatically collected and visualized through Google Cloud Logging.
+> *(Insert screenshot here)*
 
 ---
 
-## Running the Application
+## Streaming Job Events
 
-### Local Development
-
-Build and start all services:
-
-```bash
-docker compose up --build
-```
-
-### Streamlit UI
-
-Open:
-
-```text
-http://localhost:8501
-```
-
-The UI allows users to:
-
-- Submit support requests
-- View grounded responses
-- Inspect citations
-- Review confidence scores
-- View tool invocation details
-
-### Agent API
-
-```text
-http://localhost:8000
-```
-
-### Swagger API Documentation
-
-```text
-http://localhost:8000/docs
-```
-
-### Tool Server
-
-```text
-http://localhost:7001
-```
+> *(Insert screenshot here)*
 
 ---
 
-## Future Improvements
+## Dashboard
 
-- Persistent ticket storage using Firestore or Cloud SQL
-- Multi-turn conversation memory
-- Retrieval strategy comparison and ranking evaluation
-- Integration with Jira or ServiceNow
-- Advanced monitoring dashboards and alerting
-- Custom domain and authentication support
+> *(Insert screenshot here)*
 
 ---
 
-## Project Objectives
+# Future Improvements
 
-This project demonstrates:
+- Multi-agent workflow orchestration
+- Redis caching
+- Kubernetes deployment
+- Multi-region failover
+- Authentication & RBAC
+- Tool authorization
+- Load testing & benchmarking
 
-- Enterprise AI Agent design
-- Retrieval-Augmented Generation (RAG)
-- Function Calling orchestration
-- Citation-grounded response generation
-- Automated evaluation methodologies
-- Structured logging and observability
-- Docker containerization
-- Cloud-native deployment using Google Cloud Run
-- Autoscaling serverless architectures
+---
